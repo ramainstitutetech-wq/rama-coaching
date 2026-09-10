@@ -8,6 +8,12 @@ import SiteNav from "@/components/site/SiteNav";
 import SiteFooter from "@/components/site/SiteFooter";
 import confetti from "canvas-confetti";
 
+function formatPrice(fees: string) {
+  const num = parseInt(String(fees).replace(/[^0-9]/g, "") || "0", 10);
+  if (isNaN(num) || num === 0) return "₹0";
+  return `₹${num.toLocaleString("en-IN")}`;
+}
+
 const UPI_ID = "8299121689@ybl";
 const UPI_PHONE = "8299121689";
 
@@ -185,7 +191,7 @@ export default function EnrollPage() {
             </div>
             <div className="bg-white rounded-xl px-5 py-3 text-center shadow">
               <p className="text-xs text-slate-500 uppercase">Course Fee</p>
-              <p className="text-2xl font-bold text-[#1F3354]">₹ {course.fees.replace(/[₹,]/g,"")}</p>
+              <p className="text-2xl font-bold text-[#1F3354]">{formatPrice(course.fees)}</p>
               <p className="text-[11px] text-slate-400">One-time · All inclusive</p>
             </div>
           </div>
@@ -240,7 +246,7 @@ export default function EnrollPage() {
                   <div className="w-full bg-amber-50 border border-amber-200 rounded-lg p-3">
                     <p className="text-xs font-semibold text-amber-800">Important</p>
                     <ul className="text-xs text-amber-700 space-y-1 mt-1">
-                      <li>• Pay exact: <strong>₹ {course.fees.replace(/[₹,]/g,"")}</strong></li>
+                      <li>• Pay exact: <strong>{formatPrice(course.fees)}</strong></li>
                       <li>• UPI Note me likho: <strong>{course.name}</strong></li>
                       <li>• Screenshot + UTR zaroor save rakho</li>
                     </ul>

@@ -5,6 +5,7 @@ import { verifyToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Enrollment from "@/models/Enrollment";
 import Student from "@/models/Student";
+import { sendEnrollmentApprovedEmail, sendEnrollmentRejectedEmail } from "@/lib/email";
 
 // PUT /api/enrollments/[id] { action: "approve" | "reject", reason? }
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
@@ -42,10 +43,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       } catch {}
       await doc.save();
 
-      // If outsider → optionally auto-create Student? For now just mark approved, admin can manually create student via Students page.
-      // If student type → you could update student's course here if needed (optional).
+      // Send approval email (non-blocking, log if fails)
+      try {
+        await sendEnrollmentApprovedEmail({ to: doc.email, name: doc.fullName, courseName: doc.courseName, enrollmentId: doc.enrollmentId });
+      } catch (mailErr) { console.error("[enroll approve email]", mailErr); }
 
-      return NextResponse.json({ success: true, message: "Approved", data: { id: String(doc._id), enrollmentId: doc.enrollmentId, status: doc.status } });
+      return NextResponse.json({ success: true, message: "Approved and email sent", data: { id: String(doc._id), enrollmentId: doc.enrollmentId, status: doc.status } });
     } else {
       if (!reason || !String(reason).trim()) return NextResponse.json({ success: false, error: "Rejection reason required" }, { status: 400 });
       doc.status = "rejected";
@@ -53,7 +56,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       doc.verifiedBy = payload.id;
       doc.verifiedAt = new Date();
       await doc.save();
-      return NextResponse.json({ success: true, message: "Rejected", data: { id: String(doc._id), status: doc.status } });
+      try {
+        await sendEnrollmentRejectedEmail({ to: doc.email, name: doc.fullName, courseName: doc.courseName, enrollmentId: doc.enrollmentId, reason: doc.rejectionReason });
+      } catch (mailErr) { console.error("[enroll reject email]", mailErr); }
+      return NextResponse.json({ success: true, message: "Rejected and email sent", data: { id: String(doc._id), status: doc.status } });
     }
   } catch (e) {
     console.error("[enrollments PUT]", e);

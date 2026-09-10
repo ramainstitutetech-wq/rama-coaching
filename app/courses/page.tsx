@@ -6,6 +6,13 @@ import { GraduationCap, Award, Clock, Users, BookOpen, Check, ArrowRight, Credit
 import SiteNav from "@/components/site/SiteNav";
 import SiteFooter from "@/components/site/SiteFooter";
 
+function formatPrice(fees: string) {
+  if (!fees) return "₹0";
+  const num = parseInt(String(fees).replace(/[^0-9]/g, "") || "0", 10);
+  if (isNaN(num) || num === 0) return "₹0";
+  return `₹${num.toLocaleString("en-IN")}`;
+}
+
 const courseIcons: Record<number, React.ReactNode> = {
   1: <BookOpen className="w-14 h-14" />,
   2: <CreditCard className="w-14 h-14" />,
@@ -117,7 +124,7 @@ export default function CoursesPage() {
                   </div>
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                     <div>
-                      <div className="text-xl font-bold text-red-600">{course.price}</div>
+                      <div className="text-xl font-bold text-red-600">{formatPrice(course.price)}</div>
                       <div className="text-[11px] text-gray-400">Course Fee</div>
                     </div>
                     <Link href={`/courses/${course.id}`} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm flex items-center gap-1.5 transition-colors">

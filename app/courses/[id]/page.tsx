@@ -12,6 +12,12 @@ import SiteNav from "@/components/site/SiteNav";
 import SiteFooter from "@/components/site/SiteFooter";
 import type { MockTest } from "@/data/types";
 
+function formatPrice(fees: string) {
+  const num = parseInt(String(fees).replace(/[^0-9]/g, "") || "0", 10);
+  if (isNaN(num) || num === 0) return "₹0";
+  return `₹${num.toLocaleString("en-IN")}`;
+}
+
 interface CourseDetail {
   id: string; name: string; description: string;
   duration: string; fees: string; category: string; accent: string;
@@ -191,7 +197,7 @@ export default function CourseDetailPage() {
                   <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Course Fee</p>
                   <p className="text-4xl font-bold text-[#1F3354] flex items-center justify-center gap-1">
                     <IndianRupee className="h-7 w-7" />
-                    {course.fees.replace(/[₹,]/g, "")}
+                    {formatPrice(course.fees).replace("₹","")}
                   </p>
                   <p className="text-xs text-slate-400 mt-1">One-time payment · All inclusive</p>
                 </div>
@@ -210,7 +216,7 @@ export default function CourseDetailPage() {
                   </div>
                 ) : (
                   <Link href={`/enroll/${course.id}`} className="flex items-center justify-center gap-2 w-full rounded bg-red-600 hover:bg-red-700 text-white py-3 text-sm font-semibold transition-colors">
-                    Enroll Now — {course.fees} <ArrowRight className="h-4 w-4" />
+                    Enroll Now — {formatPrice(course.fees)} <ArrowRight className="h-4 w-4" />
                   </Link>
                 )}
                 <p className="text-center text-xs text-slate-400 mt-3">
