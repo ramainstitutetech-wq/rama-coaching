@@ -17,14 +17,19 @@ async function decodeToken(token: string) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Legacy login paths redirect to unified /login
+  if (pathname === "/admin/login" || pathname === "/staff/login" || pathname === "/student/login") {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
   // ── /admin routes ──────────────────────────────────────────────────────────
-  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
+  if (pathname.startsWith("/admin")) {
     const token = request.cookies.get("rama_token")?.value;
-    if (!token) return NextResponse.redirect(new URL("/admin/login", request.url));
+    if (!token) return NextResponse.redirect(new URL("/login", request.url));
 
     const payload = await decodeToken(token);
     if (!payload) {
-      const res = NextResponse.redirect(new URL("/admin/login", request.url));
+      const res = NextResponse.redirect(new URL("/login", request.url));
       res.cookies.delete("rama_token");
       return res;
     }
@@ -36,7 +41,7 @@ export async function middleware(request: NextRequest) {
 
     // Must be admin
     if (payload.role !== "admin") {
-      const res = NextResponse.redirect(new URL("/admin/login", request.url));
+      const res = NextResponse.redirect(new URL("/login", request.url));
       res.cookies.delete("rama_token");
       return res;
     }
@@ -45,13 +50,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── /staff routes ──────────────────────────────────────────────────────────
-  if (pathname.startsWith("/staff") && !pathname.startsWith("/staff/login")) {
+  if (pathname.startsWith("/staff")) {
     const token = request.cookies.get("rama_token")?.value;
-    if (!token) return NextResponse.redirect(new URL("/staff/login", request.url));
+    if (!token) return NextResponse.redirect(new URL("/login", request.url));
 
     const payload = await decodeToken(token);
     if (!payload) {
-      const res = NextResponse.redirect(new URL("/staff/login", request.url));
+      const res = NextResponse.redirect(new URL("/login", request.url));
       res.cookies.delete("rama_token");
       return res;
     }
@@ -62,7 +67,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (payload.role !== "staff") {
-      const res = NextResponse.redirect(new URL("/staff/login", request.url));
+      const res = NextResponse.redirect(new URL("/login", request.url));
       res.cookies.delete("rama_token");
       return res;
     }

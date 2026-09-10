@@ -77,9 +77,9 @@ export function StaffLayout({ children }: { children: React.ReactNode }) {
       .then((r) => r.json())
       .then((j) => {
         if (j.success) setStaffUser(j.data);
-        else router.push("/staff/login");
+        else router.push("/login");
       })
-      .catch(() => router.push("/staff/login"))
+      .catch(() => router.push("/login"))
       .finally(() => setLoading(false));
   }, []);
 
