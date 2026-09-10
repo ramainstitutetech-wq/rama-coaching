@@ -1,0 +1,47 @@
+
+> rama-coaching-certificate-poc@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 3.7s
+ ○ Compiling /api/courses ...
+ ✓ Compiled /api/courses in 1012ms (60 modules)
+ GET /api/courses?limit=50 200 in 4672ms
+ GET /api/courses?limit=50 200 in 64ms
+ ✓ Compiled /api/courses/[id] in 237ms (62 modules)
+ GET /api/courses/6a97020a5a83158c6acc6fca 200 in 1988ms
+ GET /api/courses/6a97020a5a83158c6acc6fca 200 in 51ms
+ ○ Compiling / ...
+ ✓ Compiled /courses in 23.6s (597 modules)
+ GET / 200 in 3770ms
+ ✓ Compiled /_not-found in 389ms (586 modules)
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 615ms
+ ○ Compiling /api/notices ...
+ ✓ Compiled /api/notices in 983ms (413 modules)
+ ✓ Compiled (420 modules)
+ GET /api/student/me 401 in 2944ms
+ GET /api/courses?limit=12 200 in 4465ms
+ GET /api/notices 200 in 4634ms
+ GET /api/notices 200 in 4634ms
+ GET /api/courses?limit=12 200 in 5001ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 6s (610 modules)
+ ✓ Compiled in 1233ms (313 modules)
+ GET /login?callbackUrl=%2F 200 in 7417ms
+ ✓ Compiled /_not-found in 273ms (599 modules)
+ GET /@vite/client 404 in 509ms
+ ○ Compiling /api/auth/login ...
+ ✓ Compiled /api/auth/login in 546ms (417 modules)
+ POST /api/auth/login 401 in 2829ms
+ ○ Compiling /api/seed ...
+ ✓ Compiled /api/seed in 608ms (439 modules)
+ GET /api/seed 405 in 906ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1305ms (755 modules)
+ GET /@vite/client 404 in 1573ms
+ POST /api/auth/login 401 in 123ms
+[?25h

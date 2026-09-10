@@ -1,0 +1,198 @@
+================================================================================
+  RAMA COACHING CENTER — PROJECT STATUS REPORT
+  Generated: 2026-08-29
+  Scope: Full codebase scan (Next.js 14 + TypeScript + Tailwind CSS)
+================================================================================
+
+--------------------------------------------------------------------------------
+0. TL;DR (HINDI SUMMARY)
+--------------------------------------------------------------------------------
+Project ek "Certificate Generator POC" se aage badh kar ab poora marketing website +
+certificate tool ban gaya hai. Frontend ka kaam zyada ho gaya hai, lekin:
+
+  * MARKETING SITE (Home, About, Courses, Franchise, Verification, Contact)
+    => ban gayi hai, par SAARI content hard-coded hai (CMS nahi hai).
+  * CERTIFICATE GENERATOR (Excellence + Marksheet) => fully working, client-side.
+  * ADMIN PANEL => sirf certificate tool hai, LOGIN/AUTH/DB kuch nahi hai.
+  * CMS => BILKUL nahi bana (koi backend hi nahi).
+  * BACKEND / DATABASE / AUTH => ZERO. Iske bina admin aur CMS possible hi nahi.
+
+Matlab: jo "admin panel" aur "CMS" sir chahte hain, uske liye abhi se start karna
+padega — pura backend + database + auth + admin UI + content editing UI banana
+padega. Niche detail + roadmap hai.
+
+--------------------------------------------------------------------------------
+1. TECH STACK
+--------------------------------------------------------------------------------
+  - Framework : Next.js 14.2.35 (App Router)
+  - Language  : TypeScript (strict)
+  - Styling   : Tailwind CSS (utility classes on marketing pages) +
+                custom CSS (app/globals.css) for certificate documents
+  - Icons     : lucide-react
+  - Fonts     : Google Fonts (UnifrakturCook) for certificate arch text
+  - State     : React useState only (NO global store, NO server state)
+  - Backend   : NONE
+  - Database  : NONE
+  - Auth      : NONE
+  - PDF       : Browser print / "Save as PDF" (no PDF library)
+
+--------------------------------------------------------------------------------
+2. WHAT IS COMPLETED  (status: [DONE] / [PARTIAL] / [MISSING])
+--------------------------------------------------------------------------------
+
+2.1 PUBLIC MARKETING WEBSITE ........................................ [DONE-UI]
+    Fully built, responsive, client-side pages (hard-coded content):
+      - Home        (app/page.tsx)         : hero, courses, why-us, stats,
+                                             franchise, testimonials, footer
+      - About       (app/about/page.tsx)   : static page
+      - Courses     (app/courses/page.tsx) : static course listing
+      - Franchise   (app/franchise/page.tsx): static franchise info
+      - Contact     (app/contact/page.tsx) : static contact page
+      - Verification (app/verification/page.tsx): UI ONLY (mock search, see 3.3)
+    Shared nav + footer shell reused across pages.
+    NOTE: Images are hot-linked from "lakshaygroupedu.co.in" (a DIFFERENT
+          institute). Branding/copyright risk — must be replaced with Rama's
+          own assets before go-live.
+
+2.2 CERTIFICATE GENERATOR (core POC) ............................... [DONE]
+    Located: components/certificate/*, components/forms/*
+      - Two document types: "Certificate of Excellence" + "Marksheet"
+      - Dynamic data binding (no hard-coded values)
+      - A4 layout, print-safe (@media print), exact A4 in print
+      - Live preview with auto-fit scaling
+      - Print / Save-as-PDF button (real window.print)
+      - Form validation (required fields, error messages)
+      - Sample/default data pre-filled
+      - Responsive (mobile/tablet/desktop)
+      - Reusable types (types/certificate.ts), defaults, validation, useFitScale
+
+2.3 ADMIN PAGE (current) .......................................... [PARTIAL]
+    Located: app/admin/page.tsx
+      = A copy of the certificate generator (form + preview).
+      = Has logo + nav, but NO login, NO roles, NO data persistence,
+        NO student list, NO management features.
+      => "Admin panel" naam ka sirf ek tool hai, asli admin nahi.
+
+2.4 CERTIFICATE VERIFICATION ...................................... [PARTIAL/FAKE]
+    Located: app/verification/page.tsx
+      - Nice UI (search by cert no / roll no, result card)
+      - BUT result is MOCKED via setTimeout + hard-coded "Rahul Kumar".
+      - No database lookup. Not real verification.
+
+2.5 ASSETS ......................................................... [DONE]
+    public/logo.jpeg, public/coe.jpeg (Certificate of Excellence ref),
+    public/Marksheet.jpeg (Marksheet ref).
+
+--------------------------------------------------------------------------------
+3. GAP ANALYSIS — WHAT IS MISSING
+--------------------------------------------------------------------------------
+
+STATUS LEGEND:  [MISSING] = not built at all
+                [PARTIAL] = UI only / mock / not wired to backend
+                [RISK]    = exists but needs rework
+
++====================+==================================+===========+==================+
+| AREA               | FEATURE                          | STATUS    | REMARKS         |
++====================+==================================+===========+==================+
+| BACKEND            | API routes / server logic        | [MISSING] | no app/api dir |
+| DATABASE           | Students, Certs, Courses, Users  | [MISSING] | no ORM/DB      |
+| AUTH               | Admin login                      | [MISSING] |                |
+| AUTH               | Student login / register         | [MISSING] | button exists, |
+|                    |                                  |           | no function     |
+| ADMIN PANEL        | Dashboard (stats, recent)        | [MISSING] |                |
+| ADMIN PANEL        | Student records CRUD + search    | [MISSING] | only form now  |
+| ADMIN PANEL        | Saved certificate records        | [MISSING] | not persisted  |
+| ADMIN PANEL        | Role-based access (admin/staff)  | [MISSING] |                |
+| ADMIN PANEL        | Issue/regenerate certificate     | [PARTIAL] | works in UI,   |
+|                    | from saved student               |           | no save         |
+| CMS                | Content models (courses, banners)| [MISSING] | pages hard-coded|
+| CMS                | Edit website text/images         | [MISSING] |                |
+| CMS                | Media library (upload images)    | [MISSING] | using external |
+|                    |                                  |           | hotlinks        |
+| CMS                | Menus / footer / announcements   | [MISSING] | hard-coded      |
+| VERIFICATION       | Real cert lookup (DB)            | [MISSING] | mock only       |
+| VERIFICATION       | Unique cert number generation     | [MISSING] |                |
+| FRANCHISE          | Franchise application capture    | [MISSING] | no form submit |
+| CONTACT            | Contact form submit + storage    | [MISSING] | no handler      |
+| SECURITY           | Next.js CVEs (image opt, etc.)   | [RISK]    | use 14.2.35;   |
+|                    |                                  |           | upgrade advised |
+| BRANDING           | External hot-linked images       | [RISK]    | replace w/ own |
+| TESTS              | Unit/Integration/E2E             | [MISSING] |                |
++====================+==================================+===========+==================+
+
+--------------------------------------------------------------------------------
+4. OPEN QUESTIONS FOR CLIENT (sir ko exactly kya chahiye — confirm karna)
+--------------------------------------------------------------------------------
+Because the exact admin/CMS scope is unknown, confirm these BEFORE building:
+
+  1. ADMIN LOGIN
+     - Single admin user, or multiple staff accounts with roles?
+     - Use a managed service (NextAuth/Clerk) or custom credentials?
+  2. STUDENTS
+     - Should students be created in admin only, or self-register on website?
+     - What student fields to store (beyond certificate fields)?
+  3. CERTIFICATES
+     - Auto-generate certificate NUMBER on save, or manual entry?
+     - Store generated PDF, or regenerate on demand?
+  4. COURSES / CMS
+     - Which website sections must be editable from admin?
+       (courses, banners, testimonials, stats, achievements, notices)
+     - Need image upload, or paste URLs?
+  5. VERIFICATION
+     - Public verification (anyone) or restricted?
+     - Should verified cert open a printable PDF?
+  6. HOSTING / DATA
+     - Where to host DB? (Postgres/MySQL/MongoDB)
+     - Deployment target (Vercel / own server)?
+
+--------------------------------------------------------------------------------
+5. RECOMMENDED ROADMAP (phased)
+--------------------------------------------------------------------------------
+PHASE 0 — Foundation (backend)            ~1–2 wks
+  - Add database (e.g., PostgreSQL + Prisma, or MongoDB)
+  - Auth (NextAuth credentials / admin + staff roles)
+  - API layer (route handlers) + env config
+
+PHASE 1 — Admin: Students & Certificates   ~1–2 wks
+  - Student CRUD + search/pagination
+  - Save issued certificates (link to student)
+  - Generate unique cert number
+  - Reuse existing CertificateForm + CertificateDocument (already built)
+  - Issue / preview / print from saved record
+
+PHASE 2 — CMS (website content)          ~1–2 wks
+  - Content models: Course, Banner, Testimonial, Achievement, Stat, Notice
+  - Admin screens to edit them
+  - Wire marketing pages (home/courses/about/...) to CMS data (replace hard-coded)
+  - Media upload (replace external hot-links)
+
+PHASE 3 — Real Verification & Forms        ~3–5 days
+  - Verification page queries DB by cert/roll no
+  - Contact + franchise form submit to DB / email
+
+PHASE 4 — Polish & Hardening              ~3–5 days
+  - Replace external images with Rama assets
+  - Upgrade Next.js for security CVEs
+  - Add basic tests
+  - Responsive/print QA
+
+TOTAL ESTIMATE (frontend already done): ~5–7 weeks for one dev, depending on
+answers to Section 4.
+
+--------------------------------------------------------------------------------
+6. NOTES / RISKS
+--------------------------------------------------------------------------------
+  - The certificate generator (Section 2.2) is the strongest, most complete part
+    and can be reused directly inside the real admin panel — low rework.
+  - Marketing site uses red gradients (bg-gradient-to-r from-red-700 ...) which
+    conflicts with the "no gradients" rule followed in the certificate tool.
+    Decide one visual direction for consistency.
+  - External images from lakshaygroupedu.co.in are a DIFFERENT institute —
+    legal/branding risk; replace before launch.
+  - No tests exist; add at least smoke tests for generator + auth.
+  - Next.js 14.2.35 has known advisories (image optimizer, middleware, etc.,
+    none used here) — plan an upgrade when adding a server.
+
+================================================================================
+END OF REPORT
+================================================================================
