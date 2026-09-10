@@ -16,6 +16,14 @@ export const metadata: Metadata = {
   title: "Rama Coaching Center And Computer Education Center - Quality Computer Education in Fatehpur, UP",
   description:
     "Rama Coaching Center And Computer Education Center provides quality computer education including RSCIT, Tally Prime, Digital Marketing, and more. Located in Fatehpur, Uttar Pradesh.",
+  icons: {
+    icon: [
+      { url: "/logo.jpeg", type: "image/jpeg" },
+      { url: "/favicon.ico" },
+    ],
+    shortcut: "/logo.jpeg",
+    apple: "/logo.jpeg",
+  },
 };
 
 export default function RootLayout({

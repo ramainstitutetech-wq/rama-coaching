@@ -42,6 +42,15 @@ function parseDate(str: string): Date {
   return new Date();
 }
 
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const force = url.searchParams.get("force") === "true";
+  if (force) {
+    await DELETE();
+  }
+  return POST();
+}
+
 export async function POST() {
   try {
     await connectDB();
@@ -74,11 +83,14 @@ export async function POST() {
 
     // 3. Students
     const studentMap = new Map<string, string>(); // rollNumber -> _id
+    const defaultStudentHash = await hashPassword("Student@123");
     for (const s of seedStudents) {
       const courseId = courseMap.get(s.course) || [...courseMap.values()][0];
       const doc = await Student.create({
         fullName: s.fullName, rollNumber: s.rollNumber, email: s.email.toLowerCase(), phone: s.phone,
         courseId, courseName: s.course, batch: s.batch, admissionDate: parseDate(s.admissionDate), status: s.status, avatarColor: s.avatarColor,
+        photoUrl: "",
+        passwordHash: defaultStudentHash,
       });
       studentMap.set(s.rollNumber, String(doc._id));
     }
