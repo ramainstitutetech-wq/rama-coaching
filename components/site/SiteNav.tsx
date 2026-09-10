@@ -297,7 +297,7 @@ export default function SiteNav() {
               ) : (
                 <Link href="/login" prefetch={true} onClick={() => setOpen(false)}
                   className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded font-medium text-sm transition-colors">
-                  <Users className="w-4 h-4" /> Student Login / Register
+                  <Users className="w-4 h-4" /> Student Login
                 </Link>
               )}
             </div>

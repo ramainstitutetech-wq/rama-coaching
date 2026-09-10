@@ -52,7 +52,7 @@ export async function GET(req: Request) {
       Student.countDocuments(finalFilter),
     ]);
 
-    // Map to frontend shape
+    // Map to frontend shape — include registration fields + docs
     const data = items.map((s: any) => ({
       id: String(s["_id"]),
       fullName: s["fullName"],
@@ -68,6 +68,19 @@ export async function GET(req: Request) {
       avatarColor: s["avatarColor"],
       photoUrl: s["photoUrl"] || "",
       createdAt: s["createdAt"],
+      parentName: s["parentName"] || "",
+      dob: s["dob"] ? new Date(s["dob"] as string).toISOString().slice(0, 10) : "",
+      gender: s["gender"] || "",
+      category: s["category"] || "",
+      address: s["address"] || "",
+      qualification: s["qualification"] || "",
+      passingYear: s["passingYear"] || "",
+      aadhaarNumber: s["aadhaarNumber"] || "",
+      apaarId: s["apaarId"] || "",
+      aadhaarCardUrl: s["aadhaarCardUrl"] || "",
+      marksheetUrl: s["marksheetUrl"] || "",
+      signatureUrl: s["signatureUrl"] || "",
+      thumbUrl: s["thumbUrl"] || "",
     }));
 
     return NextResponse.json({

@@ -218,6 +218,16 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {role === "student" && (
+            <div className="mt-5 text-center">
+              <p className="text-sm text-slate-600">
+                Don't have an account?{" "}
+                <Link href="/register" className="font-semibold text-emerald-600 hover:text-emerald-700 hover:underline">Register</Link>
+              </p>
+              <p className="text-xs text-slate-400 mt-1">New admission — 3 step form</p>
+            </div>
+          )}
+
           {/* Footer */}
           <div className="mt-6 pt-4 border-t border-slate-100 text-center text-xs text-slate-400 space-y-1">
             <p>

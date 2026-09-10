@@ -80,8 +80,15 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   try {
     await connectDB();
-    const doc = await Student.findOneAndUpdate({ _id: params.id, deletedAt: { $exists: false } }, { deletedAt: new Date() }, { new: true });
-    if (!doc) return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
+    const existing: any = await Student.findById(params.id).lean();
+    if (!existing) return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
+    // For pending registration requests, hard delete so email/roll can be reused (as per admin request)
+    // For active students, soft delete to keep history
+    if (existing.status === "pending") {
+      await Student.findByIdAndDelete(params.id);
+    } else {
+      await Student.findOneAndUpdate({ _id: params.id, deletedAt: { $exists: false } }, { deletedAt: new Date() }, { new: true });
+    }
     return NextResponse.json({ success: true, message: "Deleted" });
   } catch (err) {
     console.error("[DELETE student]", err);

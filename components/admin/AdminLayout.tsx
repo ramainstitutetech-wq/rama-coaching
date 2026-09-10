@@ -29,6 +29,7 @@ import {
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/registrations", label: "Registration Requests", icon: Users },
   { href: "/admin/students", label: "Students", icon: Users },
   { href: "/admin/staff", label: "Staff", icon: Briefcase },
   { href: "/admin/certificates", label: "Certificates", icon: Award },
@@ -48,6 +49,7 @@ const NAV = [
 
 const TITLES: Record<string, string> = {
   "/admin": "Dashboard",
+  "/admin/registrations": "Registration Requests",
   "/admin/students": "Students",
   "/admin/staff": "Staff Management",
   "/admin/certificates": "Certificates",

@@ -20,7 +20,8 @@ export async function POST(req: Request) {
     if (!student || !student.passwordHash) {
       return NextResponse.json({ success: false, error: "Invalid credentials or password not set by admin" }, { status: 401 });
     }
-    if (student.status === "inactive") return NextResponse.json({ success: false, error: "Account deactivated" }, { status: 403 });
+    if (student.status === "inactive") return NextResponse.json({ success: false, error: "Account deactivated. Contact admin." }, { status: 403 });
+    if (student.status === "pending") return NextResponse.json({ success: false, error: "Registration pending — admin approval awaited. You will receive email after activation." }, { status: 403 });
 
     const ok = await comparePassword(String(password), student.passwordHash);
     if (!ok) return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
