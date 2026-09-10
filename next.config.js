@@ -6,6 +6,7 @@ const nextConfig = {
   // Allow external images used across the site
   images: {
     remotePatterns: [
+      { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "lakshaygroupedu.co.in" },
       { protocol: "https", hostname: "gyanxp.com" },
       { protocol: "https", hostname: "i0.wp.com" },

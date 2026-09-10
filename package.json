@@ -12,6 +12,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
+    "cloudinary": "^2.11.0",
     "dotenv": "^17.4.2",
     "jose": "^6.2.10",
     "jsonwebtoken": "^9.0.3",
