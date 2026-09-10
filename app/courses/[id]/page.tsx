@@ -220,7 +220,7 @@ export default function CourseDetailPage() {
                   </Link>
                 )}
                 <p className="text-center text-xs text-slate-400 mt-3">
-                  Visit our center or <a href="tel:08299121689" className="text-red-600 hover:underline">call 08299121689</a>
+                  Visit our center or <a href="tel:08299121689" className="text-red-600 hover:underline">call 08299121689 / 7007482145</a>
                 </p>
               </div>
             </div>
@@ -314,7 +314,7 @@ export default function CourseDetailPage() {
             </Link>
             <a href="tel:08299121689"
               className="inline-flex items-center gap-2 border border-white/40 text-white px-6 py-3 rounded font-medium text-sm hover:bg-white/10 transition-colors">
-              <Phone className="h-4 w-4" /> Call: 08299121689
+              <Phone className="h-4 w-4" /> Call: 08299121689 / 7007482145
             </a>
           </div>
         </div>

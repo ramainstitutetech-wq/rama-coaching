@@ -139,7 +139,7 @@ export default function VerificationPage() {
                 <div className="text-center">
                   <p className="text-xs text-gray-500 mb-3">This certificate can be verified by contacting our office</p>
                   <Link href="tel:08299121689" className="inline-flex items-center px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-medium text-sm transition-colors">
-                    Contact for Verification: 08299121689
+                    Contact for Verification: 08299121689 / 7007482145
                   </Link>
                 </div>
               </div>
@@ -157,7 +157,7 @@ export default function VerificationPage() {
                 <div className="text-center">
                   <p className="text-xs text-gray-500 mb-3">Please check the certificate number or contact our office for assistance</p>
                   <Link href="tel:08299121689" className="inline-flex items-center px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-medium text-sm transition-colors">
-                    Contact: 08299121689
+                    Contact: 08299121689 / 7007482145
                   </Link>
                 </div>
               </div>

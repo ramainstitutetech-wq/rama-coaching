@@ -112,7 +112,7 @@ function NoticeTicker() {
     "🎓 New Batches Starting Soon — Enroll Now!",
     "📢 RSCIT, CCC, O-Level, Tally, ADCA Courses Available",
     "🏆 100% Government Recognized Certificates",
-    "📞 Call us: 08299121689 | Fatehpur, UP 212601",
+    "📞 Call us: 08299121689 / 7007482145 | Fatehpur, UP 212601",
     "🎁 Scholarship Available — Up to 50% Fee Waiver for Deserving Students",
   ];
 

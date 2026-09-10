@@ -379,7 +379,7 @@ export default function FranchisePage() {
           <h2 className="text-2xl font-semibold text-white mb-3">Ready to Start Your Own Computer Education Center?</h2>
           <p className="text-base text-red-100 mb-7">Join our successful franchise network and become part of the computer education revolution</p>
           <Link href="tel:08299121689" className="inline-flex items-center px-7 py-3 bg-yellow-500 text-gray-900 rounded font-medium hover:bg-yellow-600 transition-colors">
-            Call: 08299121689
+            Call: 08299121689 / 7007482145
           </Link>
         </div>
       </section>
@@ -390,8 +390,8 @@ export default function FranchisePage() {
           <h2 className="text-2xl font-semibold text-center text-gray-800 mb-10">Contact Us for Franchise Inquiry</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { icon: Phone, color: "text-red-600", title: "Phone", content: <Link href="tel:08299121689" className="text-red-600 hover:text-red-700 text-sm">08299121689</Link> },
-              { icon: Mail, color: "text-blue-600", title: "Email", content: <Link href="mailto:franchise@ramacoaching.com" className="text-red-600 hover:text-red-700 text-sm break-all">franchise@ramacoaching.com</Link> },
+              { icon: Phone, color: "text-red-600", title: "Phone", content: <Link href="tel:08299121689" className="text-red-600 hover:text-red-700 text-sm">08299121689 / 7007482145</Link> },
+              { icon: Mail, color: "text-blue-600", title: "Email", content: <Link href="mailto:ramainstitutetech@gmail.com" className="text-red-600 hover:text-red-700 text-sm break-all">ramainstitutetech@gmail.com</Link> },
               { icon: MapPin, color: "text-green-600", title: "Address", content: <p className="text-gray-500 text-sm">Fatehpur, Uttar Pradesh 212601</p> },
             ].map((item) => (
               <div key={item.title} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 text-center">

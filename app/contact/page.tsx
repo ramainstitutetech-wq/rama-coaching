@@ -73,8 +73,8 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              { icon: Phone, color: "bg-red-50 text-red-600", title: "Phone", content: <Link href="tel:08299121689" className="text-red-600 hover:text-red-700 text-sm">08299121689</Link>, sub: "Mon–Sat, 9AM–6PM" },
-              { icon: Mail, color: "bg-blue-50 text-blue-600", title: "Email", content: <Link href="mailto:info@ramacoaching.com" className="text-red-600 hover:text-red-700 text-sm">info@ramacoaching.com</Link>, sub: "Reply within 24 hours" },
+              { icon: Phone, color: "bg-red-50 text-red-600", title: "Phone", content: <Link href="tel:08299121689" className="text-red-600 hover:text-red-700 text-sm">08299121689 / 7007482145</Link>, sub: "Mon–Sat, 9AM–6PM" },
+              { icon: Mail, color: "bg-blue-50 text-blue-600", title: "Email", content: <Link href="mailto:ramainstitutetech@gmail.com" className="text-red-600 hover:text-red-700 text-sm">ramainstitutetech@gmail.com</Link>, sub: "Reply within 24 hours" },
               { icon: MapPin, color: "bg-green-50 text-green-600", title: "Address", content: <p className="text-gray-600 text-sm">UPHC, Andauli Puliya, Ghazipur Rd, Fatehpur, UP 212601</p>, sub: "" },
               { icon: Clock, color: "bg-yellow-50 text-yellow-600", title: "Working Hours", content: <p className="text-gray-600 text-sm">Mon–Sat: 9:00 AM – 6:00 PM</p>, sub: "Sunday: Closed" },
             ].map((item) => (
@@ -194,7 +194,7 @@ export default function ContactPage() {
           <div className="space-y-3">
             {[
               { q: "What courses do you offer?", a: "We offer RSCIT, Tally Prime, Digital Marketing, RSCFA Accounting, ADCA/DCA Diploma, and Graphic Design courses." },
-              { q: "How do I get admitted?", a: "Visit our center or call us at 08299121689. You can also fill the contact form above and we will guide you through the process." },
+              { q: "How do I get admitted?", a: "Visit our center or call us at 08299121689 / 7007482145. You can also fill the contact form above and we will guide you through the process." },
               { q: "Do you provide placement assistance?", a: "Yes, we provide career guidance and job placement support to all our students after course completion." },
               { q: "Are the certificates government recognized?", a: "Yes, all certificates issued by Rama Coaching Center are government recognized and verifiable online." },
             ].map((item) => (

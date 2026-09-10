@@ -53,10 +53,12 @@ export default function SiteFooter() {
               <li className="flex items-center text-gray-400">
                 <Phone className="w-4 h-4 mr-2" />
                 <Link href="tel:08299121689" className="hover:text-white transition-colors">08299121689</Link>
+                <span className="mx-1">/</span>
+                <Link href="tel:7007482145" className="hover:text-white transition-colors">7007482145</Link>
               </li>
               <li className="flex items-center text-gray-400">
                 <Mail className="w-4 h-4 mr-2" />
-                <Link href="mailto:info@ramacoaching.com" className="hover:text-white transition-colors">info@ramacoaching.com</Link>
+                <Link href="mailto:ramainstitutetech@gmail.com" className="hover:text-white transition-colors">ramainstitutetech@gmail.com</Link>
               </li>
               <li className="flex items-center text-gray-400">
                 <Clock className="w-4 h-4 mr-2" />

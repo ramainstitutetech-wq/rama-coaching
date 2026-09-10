@@ -83,11 +83,11 @@ export default function SiteNav() {
             <span className="px-2 py-0.5 bg-red-900 font-medium rounded-sm text-[11px] flex items-center gap-1 whitespace-nowrap">
               <FileText className="w-3 h-3" /> Latest Announcement:
             </span>
-            <span className="animate-pulse whitespace-nowrap">New Batches Starting Soon! Contact: 08299121689</span>
+            <span className="animate-pulse whitespace-nowrap">New Batches Starting Soon! Contact: 08299121689 / 7007482145</span>
           </div>
           <div className="hidden md:flex items-center gap-4 whitespace-nowrap">
             <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Fatehpur, UP 212601</span>
-            <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> 08299121689</span>
+            <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> <Link href="tel:08299121689" className="hover:text-white">08299121689</Link> / <Link href="tel:7007482145" className="hover:text-white">7007482145</Link></span>
           </div>
         </div>
       </div>

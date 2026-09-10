@@ -174,7 +174,7 @@ export async function sendActivationEmail({ to, name, email, password }: { to: s
       <div style="text-align:center;margin:24px 0;">
         <a href="${portalLink}" style="display:inline-block;background:#1F3354;color:#ffffff;text-decoration:none;padding:13px 32px;border-radius:8px;font-size:14px;font-weight:600;">Login to Student Portal</a>
       </div>
-      <p style="color:#64748b;font-size:12px;line-height:18px;margin:0;">Keep this email safe. You can change your password after login from your profile. For any help, contact us at 08299121689.</p>
+      <p style="color:#64748b;font-size:12px;line-height:18px;margin:0;">Keep this email safe. You can change your password after login from your profile. For any help, contact us at 08299121689 / 7007482145.</p>
     </div>
     <div style="background:#f8fafc;padding:16px 32px;text-align:center;border-top:1px solid #e2e8f0;">
       <p style="color:#94a3b8;font-size:11px;margin:0;">© 2026 Rama Coaching Center, Fatehpur, UP</p>
@@ -270,7 +270,7 @@ export async function sendEnrollmentRejectedEmail({ to, name, courseName, enroll
         <p style="color:#991b1b;font-size:13px;margin:4px 0;"><strong>Enrollment ID:</strong> ${enrollmentId}</p>
         <p style="color:#991b1b;font-size:13px;margin:4px 0;"><strong>Reason:</strong> ${reason || "Please contact admin"}</p>
       </div>
-      <p style="color:#64748b;font-size:13px;line-height:20px;margin:0 0 16px;">Please verify your UTR and screenshot, or contact us at 08299121689 / reply to this email. You can re-enroll after correction.</p>
+      <p style="color:#64748b;font-size:13px;line-height:20px;margin:0 0 16px;">Please verify your UTR and screenshot, or contact us at 08299121689 / 7007482145 / reply to this email. You can re-enroll after correction.</p>
     </div>
     <div style="background:#f8fafc;padding:16px 32px;text-align:center;border-top:1px solid #e2e8f0;">
       <p style="color:#94a3b8;font-size:11px;margin:0;">© 2026 Rama Coaching Center</p>
