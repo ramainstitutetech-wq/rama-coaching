@@ -421,13 +421,18 @@ export default function CoursesAdminPage() {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Category">
-              <TextInput
+              <SelectField
                 value={draft.category}
                 onChange={(e) =>
                   setDraft({ ...draft, category: e.target.value })
                 }
-                placeholder="e.g. Diploma"
-              />
+              >
+                <option value="">Select Category</option>
+                <option value="Computer Courses">Computer Courses</option>
+                <option value="Academic">Academic</option>
+                <option value="Library">Library</option>
+                <option value="Defense">Defense</option>
+              </SelectField>
             </Field>
             <Field label="Status">
               <SelectField

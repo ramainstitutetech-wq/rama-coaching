@@ -99,18 +99,15 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (!courseCategory) { setCourses(allCourses); return; }
-    if (isComputer) {
-      setCourses(allCourses);
-    } else {
-      const filtered = allCourses.filter(c => {
-        const cat = c.category.toLowerCase();
-        if (courseCategory === "academic") return cat.includes("academic") || cat.includes("diploma") || cat.includes("certification") || cat.includes("foundation");
-        if (courseCategory === "library") return cat.includes("library") || cat.includes("research");
-        if (courseCategory === "defense") return cat.includes("defense") || cat.includes("military") || cat.includes("nda");
-        return true;
-      });
-      setCourses(filtered.length > 0 ? filtered : allCourses);
-    }
+    const categoryMap: Record<string, string> = {
+      computer: "Computer Courses",
+      academic: "Academic",
+      library: "Library",
+      defense: "Defense",
+    };
+    const targetCategory = categoryMap[courseCategory] || "";
+    const filtered = allCourses.filter(c => c.category === targetCategory);
+    setCourses(filtered.length > 0 ? filtered : allCourses);
     setCourseId("");
   }, [courseCategory, allCourses]);
 
