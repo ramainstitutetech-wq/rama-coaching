@@ -28,12 +28,16 @@ export default function RegisterPage() {
   // Step 1
   const [fullName, setFullName] = useState("");
   const [parentName, setParentName] = useState("");
+  const [motherName, setMotherName] = useState("");
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState("");
   const [category, setCategory] = useState("General");
+  const [religion, setReligion] = useState("");
+  const [visibleMark, setVisibleMark] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
+  const [cityName, setCityName] = useState("");
   const [courseId, setCourseId] = useState("");
   const [batch, setBatch] = useState("Morning-A");
 
@@ -78,6 +82,10 @@ export default function RegisterPage() {
   function validateStep(s: number) {
     if(s===1){
       if(!fullName.trim() || !email.trim() || !phone.trim() || !courseId) return "Name, Email, Phone, Course required";
+      if(!motherName.trim()) return "Mother's Name is required";
+      if(!religion) return "Religion is required";
+      if(!visibleMark.trim()) return "Visible Mark is required";
+      if(!address.trim() || !cityName.trim()) return "Address and City are required";
       if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return "Invalid email";
       if(phone.length < 10) return "Invalid phone";
     }
@@ -103,14 +111,19 @@ export default function RegisterPage() {
     e.preventDefault();
     const err = validateStep(3);
     if(err){ setMsg({type:"err", text: err}); setStep(3); return; }
+    // Also validate step 1 required new fields before final submit
+    const err1 = validateStep(1);
+    if(err1){ setMsg({type:"err", text: err1}); setStep(1); return; }
     setSubmitting(true);
     setMsg(null);
     try {
+      const combinedAddress = [address, cityName].filter(Boolean).join(", ");
       const res = await fetch("/api/register", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({
-          fullName, parentName, dob, gender, category, phone, email, address, courseId, batch,
+          fullName, parentName, motherName, dob, gender, category, religion, visibleMark,
+          phone, email, address: combinedAddress, addressLine1: address, cityName, courseId, batch,
           qualification, passingYear, aadhaarNumber: aadhaarNumber.replace(/\s/g,""), apaarId,
           password, confirmPassword,
           aadhaarCardUrl, marksheetUrl, photoUrl, signatureUrl, thumbUrl,
@@ -174,25 +187,29 @@ export default function RegisterPage() {
           {msg && <div className={`mb-4 rounded-lg px-4 py-3 text-sm flex items-center gap-2 ${msg.type==="ok" ? "bg-emerald-50 border border-emerald-200 text-emerald-700" : "bg-red-50 border border-red-200 text-red-700"}`}>{msg.type==="ok" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}{msg.text}</div>}
 
           <form onSubmit={(e)=>e.preventDefault()} onKeyDown={(e)=>{ if(e.key==="Enter") e.preventDefault(); }} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
-            {/* Step 1 */}
+            {/* Step 1 — Applicant & Personal Details (2.1 - 2.10, 7.6) */}
             {step===1 && (
-              <div className="space-y-4">
-                <h3 className="font-semibold text-slate-800 flex items-center gap-2"><User className="w-4 h-4 text-[#1F3354]" /> Basic Details</h3>
+              <div className="space-y-5">
+                <h3 className="font-semibold text-slate-800 flex items-center gap-2"><User className="w-4 h-4 text-[#1F3354]" /> Applicant Details <span className="text-xs font-normal text-slate-500">— 2.1 to 2.10</span></h3>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">Full Name *</label>
-                    <input value={fullName} onChange={e=>setFullName(e.target.value)} placeholder="Rama Kumar" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
+                  <div className="sm:col-span-2">
+                    <label className="text-sm font-medium">2.1 Applicant&apos;s full name / आवेदक का पूरा नाम *</label>
+                    <input value={fullName} onChange={e=>setFullName(e.target.value)} placeholder="Full name" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Parent Name</label>
-                    <input value={parentName} onChange={e=>setParentName(e.target.value)} placeholder="Father/Mother Name" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
+                    <label className="text-sm font-medium">2.2.1 Father&apos;s Name / पिता का नाम *</label>
+                    <input value={parentName} onChange={e=>setParentName(e.target.value)} placeholder="Father's name" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> DOB</label>
+                    <label className="text-sm font-medium">2.2.2 Mother&apos;s Name / माता का नाम *</label>
+                    <input value={motherName} onChange={e=>setMotherName(e.target.value)} placeholder="Mother's name" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> 2.4 Date of Birth / जन्म दिनांक *</label>
                     <input type="date" value={dob} onChange={e=>setDob(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Gender</label>
+                    <label className="text-sm font-medium">2.3 Gender / लिंग *</label>
                     <select value={gender} onChange={e=>setGender(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]">
                       <option value="">Select</option>
                       <option value="male">Male</option>
@@ -201,38 +218,61 @@ export default function RegisterPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Category</label>
+                    <label className="text-sm font-medium">2.6 Category / वर्ग *</label>
                     <select value={category} onChange={e=>setCategory(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
                       <option>General</option><option>OBC</option><option>SC</option><option>ST</option><option>EWS</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Batch</label>
-                    <select value={batch} onChange={e=>setBatch(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
-                      <option>Morning-A</option><option>Morning-B</option><option>Evening-A</option><option>Evening-B</option>
+                    <label className="text-sm font-medium">2.10 Religion / धर्म *</label>
+                    <select value={religion} onChange={e=>setReligion(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+                      <option value="">Select</option><option>Hindu</option><option>Muslim</option><option>Sikh</option><option>Christian</option><option>Other</option>
                     </select>
                   </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-sm font-medium">7.6 Visible Distinguishing Mark / स्पष्ट पहचान चिन्ह *</label>
+                    <input value={visibleMark} onChange={e=>setVisibleMark(e.target.value)} placeholder="e.g. Mole on right cheek" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
+                    <p className="text-[11px] text-slate-500 mt-1">Image should not be blurred or smudged.</p>
+                  </div>
                 </div>
-                <div className="grid sm:grid-cols-2 gap-4">
+
+                <div className="border-t border-slate-100 pt-4 space-y-4">
+                  <h4 className="text-sm font-semibold text-slate-700">3. Contact Details / संपर्क विवरण</h4>
                   <div>
-                    <label className="text-sm font-medium flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> Phone *</label>
+                    <label className="text-sm font-medium flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> Mobile Number / मोबाइल नंबर *</label>
                     <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="10-digit" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium flex items-center gap-1"><Mail className="w-3.5 h-3.5" /> Email *</label>
+                    <label className="text-sm font-medium flex items-center gap-1"><Mail className="w-3.5 h-3.5" /> Email Address / ईमेल पता *</label>
                     <input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="email@gmail.com" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
                   </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> Address</label>
-                  <input value={address} onChange={e=>setAddress(e.target.value)} placeholder="Village, City, District" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium flex items-center gap-1"><GraduationCap className="w-3.5 h-3.5" /> Course *</label>
-                  <select value={courseId} onChange={e=>setCourseId(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
-                    <option value="">{loadingCourses ? "Loading..." : "Select Course"}</option>
-                    {courses.map(c=> <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
+
+                <div className="border-t border-slate-100 pt-4 space-y-4">
+                  <h4 className="text-sm font-semibold text-slate-700">4. Permanent Address Details / स्थायी पता विवरण</h4>
+                  <div>
+                    <label className="text-sm font-medium">4.1 Address / पता *</label>
+                    <textarea value={address} onChange={e=>setAddress(e.target.value)} placeholder="House No, Street, Locality, Area, Landmark" rows={3} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354] resize-none" />
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium">4.2 City Name / शहर का नाम *</label>
+                      <input value={cityName} onChange={e=>setCityName(e.target.value)} placeholder="City" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Batch</label>
+                      <select value={batch} onChange={e=>setBatch(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+                        <option>Morning-A</option><option>Morning-B</option><option>Evening-A</option><option>Evening-B</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium flex items-center gap-1"><GraduationCap className="w-3.5 h-3.5" /> Course *</label>
+                    <select value={courseId} onChange={e=>setCourseId(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+                      <option value="">{loadingCourses ? "Loading..." : "Select Course"}</option>
+                      {courses.map(c=> <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
             )}

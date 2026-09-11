@@ -22,10 +22,22 @@ interface Registration {
   batch: string;
   status: RegStatus;
   parentName?: string;
+  motherName?: string;
   dob?: string;
   gender?: string;
   category?: string;
+  religion?: string;
+  maritalStatus?: string;
+  handicapped?: string;
+  exServiceman?: string;
+  ews?: string;
   address?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  addressLine3?: string;
+  cityName?: string;
+  stdPhone?: string;
+  visibleMark?: string;
   qualification?: string;
   passingYear?: string;
   aadhaarNumber?: string;
@@ -239,15 +251,22 @@ export default function RegistrationsPage() {
       {/* View Modal */}
       <Modal open={!!viewItem} onClose={()=>setViewItem(null)} title={viewItem ? `Registration — ${viewItem.fullName}` : "Details"} size="xl">
         {viewItem && (
-          <div className="space-y-5">
+          <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div><p className="text-xs text-slate-500">Full Name</p><p className="font-medium">{viewItem.fullName}</p></div>
-              <div><p className="text-xs text-slate-500">Parent Name</p><p className="font-medium">{viewItem.parentName || "—"}</p></div>
-              <div><p className="text-xs text-slate-500">DOB</p><p className="font-medium">{viewItem.dob ? new Date(viewItem.dob).toLocaleDateString("en-IN") : "—"}</p></div>
-              <div><p className="text-xs text-slate-500">Gender / Category</p><p className="font-medium">{viewItem.gender || "—"} / {viewItem.category || "—"}</p></div>
-              <div><p className="text-xs text-slate-500">Phone</p><p className="font-medium">{viewItem.phone}</p></div>
-              <div><p className="text-xs text-slate-500">Email</p><p className="font-medium">{viewItem.email}</p></div>
-              <div className="col-span-2"><p className="text-xs text-slate-500">Address</p><p className="font-medium">{viewItem.address || "—"}</p></div>
+              <div><p className="text-xs text-slate-500">2.1 Full Name</p><p className="font-medium">{viewItem.fullName}</p></div>
+              <div><p className="text-xs text-slate-500">2.2.1 Father&apos;s Name</p><p className="font-medium">{viewItem.parentName || "—"}</p></div>
+              <div className="bg-amber-50 border border-amber-200 rounded px-2 py-1"><p className="text-xs text-amber-700">2.2.2 Mother&apos;s Name *</p><p className="font-medium text-amber-900">{(viewItem as any).motherName || "—"}</p></div>
+              <div><p className="text-xs text-slate-500">2.3 Gender</p><p className="font-medium">{viewItem.gender || "—"}</p></div>
+              <div><p className="text-xs text-slate-500">2.4 DOB</p><p className="font-medium">{viewItem.dob ? new Date(viewItem.dob).toLocaleDateString("en-IN") : "—"}</p></div>
+              <div><p className="text-xs text-slate-500">2.6 Category</p><p className="font-medium">{viewItem.category || "—"}</p></div>
+              <div className="bg-amber-50 border border-amber-200 rounded px-2 py-1"><p className="text-xs text-amber-700">2.10 Religion *</p><p className="font-medium text-amber-900">{(viewItem as any).religion || "—"}</p></div>
+              <div><p className="text-xs text-slate-500">Phone (Mobile)</p><p className="font-medium">{viewItem.phone}</p></div>
+              <div><p className="text-xs text-slate-500">Email</p><p className="font-medium break-all">{viewItem.email}</p></div>
+              <div className="col-span-2 bg-slate-50 rounded p-2">
+                <p className="text-xs text-slate-500">4. Permanent Address</p>
+                <p className="font-medium text-sm">{viewItem.address || [(viewItem as any).addressLine1, (viewItem as any).cityName].filter(Boolean).join(", ") || "—"}</p>
+                <p className="text-xs text-slate-500 mt-1">Visible Mark (7.6): <span className="font-medium text-slate-800">{(viewItem as any).visibleMark || "—"}</span></p>
+              </div>
               <div><p className="text-xs text-slate-500">Course</p><p className="font-medium">{viewItem.course} ({viewItem.batch})</p></div>
               <div><p className="text-xs text-slate-500">Qualification / Year</p><p className="font-medium">{viewItem.qualification || "—"} / {viewItem.passingYear || "—"}</p></div>
               <div><p className="text-xs text-slate-500">Aadhaar</p><p className="font-medium font-mono">{viewItem.aadhaarNumber || "—"}</p></div>

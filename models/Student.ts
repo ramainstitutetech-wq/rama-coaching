@@ -19,10 +19,22 @@ export interface IStudent extends Document {
   resetPasswordExpires?: Date;
   // Registration flow fields
   parentName?: string;
+  motherName?: string;
   dob?: Date;
   gender?: "male" | "female" | "other";
   category?: string;
+  religion?: string;
+  maritalStatus?: string;
+  handicapped?: string;
+  exServiceman?: string;
+  ews?: string;
   address?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  addressLine3?: string;
+  cityName?: string;
+  stdPhone?: string;
+  visibleMark?: string;
   qualification?: string;
   passingYear?: string;
   aadhaarNumber?: string;
@@ -53,10 +65,22 @@ const StudentSchema = new Schema<IStudent>(
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
     parentName: { type: String, default: "" },
+    motherName: { type: String, default: "" },
     dob: { type: Date },
     gender: { type: String, enum: ["male", "female", "other"], default: undefined },
     category: { type: String, default: "" },
+    religion: { type: String, default: "" },
+    maritalStatus: { type: String, default: "" },
+    handicapped: { type: String, default: "" },
+    exServiceman: { type: String, default: "" },
+    ews: { type: String, default: "" },
     address: { type: String, default: "" },
+    addressLine1: { type: String, default: "" },
+    addressLine2: { type: String, default: "" },
+    addressLine3: { type: String, default: "" },
+    cityName: { type: String, default: "" },
+    stdPhone: { type: String, default: "" },
+    visibleMark: { type: String, default: "" },
     qualification: { type: String, default: "" },
     passingYear: { type: String, default: "" },
     aadhaarNumber: { type: String, default: "" },

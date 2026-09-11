@@ -35,7 +35,9 @@ export async function POST(req: Request) {
     await connectDB();
     const body = await req.json();
     const {
-      fullName, parentName, dob, gender, category, phone, email, address, courseId, batch,
+      fullName, parentName, motherName, dob, gender, category, religion,
+      phone, email, address, addressLine1, addressLine2, addressLine3, cityName, courseId, batch,
+      maritalStatus, handicapped, exServiceman, ews, visibleMark, stdPhone,
       qualification, passingYear, aadhaarNumber, apaarId,
       password, confirmPassword,
       aadhaarCardUrl, marksheetUrl, photoUrl, signatureUrl, thumbUrl,
@@ -45,6 +47,11 @@ export async function POST(req: Request) {
     if (!fullName?.trim() || !email?.trim() || !phone?.trim() || !courseId) {
       return NextResponse.json({ success: false, error: "Name, Email, Phone, Course are required" }, { status: 400 });
     }
+    if (!motherName?.trim()) return NextResponse.json({ success: false, error: "Mother's Name is required" }, { status: 400 });
+    if (!religion?.trim()) return NextResponse.json({ success: false, error: "Religion is required" }, { status: 400 });
+    if (!visibleMark?.trim()) return NextResponse.json({ success: false, error: "Visible Mark is required" }, { status: 400 });
+    const effectiveAddress = (address?.trim() || addressLine1?.trim() || "");
+    if (!effectiveAddress || !cityName?.trim()) return NextResponse.json({ success: false, error: "Address and City are required" }, { status: 400 });
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return NextResponse.json({ success: false, error: "Invalid email" }, { status: 400 });
     if (!password || password.length < 6) return NextResponse.json({ success: false, error: "Password min 6 chars" }, { status: 400 });
     if (password !== confirmPassword) return NextResponse.json({ success: false, error: "Passwords do not match" }, { status: 400 });
@@ -65,6 +72,7 @@ export async function POST(req: Request) {
     for (let attempt = 0; attempt < 5; attempt++) {
       const rollNumber = await findFreeRollNumber();
       try {
+        const combinedAddress = [effectiveAddress, cityName].filter(Boolean).join(", ") || address || "";
         doc = await Student.create({
           fullName: String(fullName).trim(),
           rollNumber,
@@ -80,10 +88,22 @@ export async function POST(req: Request) {
           passwordHash,
           tempPassword: String(password),
           parentName: parentName || "",
+          motherName: motherName || "",
           dob: dob ? new Date(dob) : undefined,
           gender: gender || undefined,
           category: category || "",
-          address: address || "",
+          religion: religion || "",
+          maritalStatus: (maritalStatus as string) || "",
+          handicapped: (handicapped as string) || "",
+          exServiceman: (exServiceman as string) || "",
+          ews: (ews as string) || "",
+          address: combinedAddress,
+          addressLine1: effectiveAddress || "",
+          addressLine2: (addressLine2 as string) || "",
+          addressLine3: (addressLine3 as string) || "",
+          cityName: cityName || "",
+          stdPhone: (stdPhone as string) || "",
+          visibleMark: (visibleMark as string) || "",
           qualification: qualification || "",
           passingYear: passingYear || "",
           aadhaarNumber: aadhaarNumber ? String(aadhaarNumber).replace(/\s/g,"") : "",
