@@ -50,16 +50,16 @@ export function ExcellenceCertificate({ data }: { data: CertificateData }) {
           <div className="doc-flow">
             <div className="doc-flow-top">
               <div className="doc-flow-header" style={{ overflow: "visible" }}>
-                {/* Arched institution name — Mangalam College style: Old English Blackletter */}
-                <svg className="doc-arch-flow" viewBox="0 0 920 200" aria-hidden="true" style={{ overflow: "visible", width: "100%", padding: "0 18px", boxSizing: "border-box" }}>
+                {/* Arched institution name — Old English Blackletter */}
+                <svg className="doc-arch-flow" viewBox="0 0 920 200" aria-hidden="true" style={{ overflow: "visible", width: "100%", padding: "0 10px", boxSizing: "border-box" }}>
                   <defs>
                     <path id="archPathFlow" d="M 45,185 A 470,185 0 0 1 875,185" fill="none" />
                   </defs>
                   <text
-                    textLength="800"
+                    textLength="890"
                     lengthAdjust="spacing"
                     style={{
-                      fontSize: 50,
+                      fontSize: 58,
                       fontFamily: '"Old English Custom", "Old English Text MT", "UnifrakturMaguntia", "Cloister Black", "Engravers Old English", cursive, serif',
                       fontWeight: "normal",
                       letterSpacing: "0.2px",
@@ -76,7 +76,7 @@ export function ExcellenceCertificate({ data }: { data: CertificateData }) {
                   </text>
                 </svg>
                 <div className="doc-recognised" style={{ marginBottom: 1 }}>RECOGNISED BY GOVT. OF INDIA</div>
-                <div style={{ textAlign: "center", fontSize: 8, lineHeight: 1.25, fontWeight: 700, color: "#000", marginTop: 0, letterSpacing: "0.12px" }}>
+                <div style={{ textAlign: "center", fontSize: 10, lineHeight: 1.25, fontWeight: 700, color: "#000", marginTop: 0, letterSpacing: "0.50px" }}>
                   <div>REGISTERED UNDER SOCIETY ACT 1860 REGISTRATION NO. FAT/08168</div>
                   <div>REGISTERED UNDER MICRO SMALL & MEDIUM ENTERPRISES REGISTRATION NO. UDYAM-UP-UP-26-0003221</div>
                   <div>REGISTERED WITH: NITI AAYOG NGO DARPAN GOVT. OF INDIA REGISTRATION NO. UP/2026/1024159</div>
@@ -152,8 +152,8 @@ export function ExcellenceCertificate({ data }: { data: CertificateData }) {
                 <img src={sigUrls.ctrl} alt="Controller Signature" style={{ width: 105, height: 38, objectFit: "contain", marginBottom: 1, display: "block", marginLeft: "auto", marginRight: "auto" }} onError={(e)=>{(e.currentTarget as HTMLImageElement).src="/signature.png";}} />
                 <span style={{ borderTop: "1px solid #000", paddingTop: 2, display: "inline-block", minWidth: 135, fontSize: 11 }}>Controller Of Examination</span>
               </div>
-              {/* Stamp — center watermark */}
-              <img src="/stamp.png" alt="Stamp" style={{ position: "absolute", left: "50%", top: "52%", transform: "translate(-50%, -50%)", width: 140, height: 140, objectFit: "contain", pointerEvents: "none", opacity: 0.12 }} />
+              {/* Stamp — center watermark, closer to signature area */}
+              <img src="/stamp.png" alt="Stamp" style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: 140, height: 140, objectFit: "contain", pointerEvents: "none", opacity: 0.35 }} />
             </div>
           </div>
         </div>

@@ -12,12 +12,12 @@ export function Marksheet({ data }: { data: CertificateData }) {
     { label: "Name:",           value: data.studentName },
     { label: "Father's Name :", value: data.fatherName },
     { label: "Course Code :",   value: data.courseCode },
+    { label: "Course Duration :",     value: data.courseDuration },
   ];
 
   const rightFields: { label: string; value: string }[] = [
     { label: "Enrollment No. :",      value: data.enrollmentNo },
     { label: "Mother Name :",         value: data.motherName },
-    { label: "Course Duration :",     value: data.courseDuration },
     { label: "Date Of Completion :",  value: data.completionDate },
     { label: "Training Centre :",     value: data.trainingCenter },
   ];
@@ -61,16 +61,16 @@ export function Marksheet({ data }: { data: CertificateData }) {
             <div className="doc-flow-top">
               <div className="doc-flow-header doc-flow-header-marks" style={{ overflow: "visible" }}>
                 <div className="doc-header-center" style={{ overflow: "visible" }}>
-                  {/* Arched institution name — Mangalam College style: Old English Blackletter */}
-                  <svg className="doc-arch-flow" viewBox="0 0 920 200" aria-hidden="true" style={{ overflow: "visible", width: "100%", padding: "0 18px", boxSizing: "border-box" }}>
+                  {/* Arched institution name — Old English Blackletter */}
+                  <svg className="doc-arch-flow" viewBox="0 0 920 200" aria-hidden="true" style={{ overflow: "visible", width: "100%", padding: "0 10px", boxSizing: "border-box" }}>
                     <defs>
                       <path id="archPathMarks" d="M 45,185 A 470,185 0 0 1 875,185" fill="none" />
                     </defs>
                     <text
-                      textLength="800"
+                      textLength="890"
                       lengthAdjust="spacing"
                       style={{
-                        fontSize: 50,
+                        fontSize: 58,
                         fontFamily: '"Old English Custom", "Old English Text MT", "UnifrakturMaguntia", "Cloister Black", "Engravers Old English", cursive, serif',
                         fontWeight: "normal",
                         letterSpacing: "0.2px",
@@ -87,7 +87,7 @@ export function Marksheet({ data }: { data: CertificateData }) {
                     </text>
                   </svg>
                   <div className="doc-recognised" style={{ marginBottom: 1 }}>RECOGNISED BY GOVT. OF INDIA</div>
-                  <div style={{ textAlign: "center", fontSize: 6.8, lineHeight: 1.25, fontWeight: 700, color: "#000", marginTop: 0, letterSpacing: "0.12px" }}>
+                  <div style={{ textAlign: "center", fontSize: 10, lineHeight: 1.25, fontWeight: 700, color: "#000", marginTop: 0, letterSpacing: "0.50px" }}>
                     <div>REGISTERED UNDER SOCIETY ACT 1860 REGISTRATION NO. FAT/08168</div>
                     <div>REGISTERED UNDER MICRO SMALL & MEDIUM ENTERPRISES REGISTRATION NO. UDYAM-UP-UP-26-0003221</div>
                     <div>REGISTERED WITH: NITI AAYOG NGO DARPAN GOVT. OF INDIA REGISTRATION NO. UP/2026/1024159</div>
@@ -99,7 +99,7 @@ export function Marksheet({ data }: { data: CertificateData }) {
                 </div>
 
                 {/* Student photo — 10% smaller, shifted up */}
-                <div className="doc-photo" style={{ width: 70, height: 86, top: 10 }}>
+                <div className="doc-photo" style={{ width: 70, height: 66, top: 10 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={photoSrc}
@@ -120,30 +120,30 @@ export function Marksheet({ data }: { data: CertificateData }) {
 
               <div className="doc-title-block" style={{ marginTop: 4, marginBottom: 4 }}>
                 <div className="doc-msheet-flow" style={{ fontSize: 16, marginBottom: 1 }}>MARKSHEET</div>
-                <div className="doc-course-flow" style={{ fontSize: 12 }}>{data.courseName}</div>
+                <div className="doc-course-flow" style={{ fontSize: 14 }}>{data.courseName}</div>
               </div>
 
               <div className="doc-marks-meta" style={{ marginTop: 5, marginBottom: 4, gap: 10 }}>
                 <div className="doc-marks-meta-col">
                   {leftFields.map((f) => (
                     <div key={f.label} className="doc-meta-field" style={{ marginBottom: 1.5, lineHeight: 1.35 }}>
-                      <span className="doc-field-label" style={{ fontSize: 12.5, fontWeight: 600 }}>{f.label}</span>
-                      <span className="doc-field-value" style={{ fontSize: 11, fontWeight: 600 }}>{f.value || "—"}</span>
+                      <span className="doc-field-label" style={{ fontSize: 14.5, fontWeight: 600 }}>{f.label}</span>
+                      <span className="doc-field-value" style={{ fontSize: 14, fontWeight: 600 }}>{f.value || "—"}</span>
                     </div>
                   ))}
                 </div>
                 <div className="doc-marks-meta-col">
                   {rightFields.map((f) => (
                     <div key={f.label} className="doc-meta-field" style={{ marginBottom: 1.5, lineHeight: 1.35 }}>
-                      <span className="doc-field-label" style={{ fontSize: 12.5, fontWeight: 600 }}>{f.label}</span>
-                      <span className="doc-field-value" style={{ fontSize: 11, fontWeight: 600 }}>{f.value || "—"}</span>
+                      <span className="doc-field-label" style={{ fontSize: 14, fontWeight: 600 }}>{f.label}</span>
+                      <span className="doc-field-value" style={{ fontSize: 14, fontWeight: 600 }}>{f.value || "—"}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            <table className="doc-marks" style={{ fontSize: 11, marginTop: 4 }}>
+            <table className="doc-marks" style={{ fontSize: 14, marginTop: 4 }}>
               <thead>
                 <tr>
                   <th rowSpan={2} style={{ padding: "3px 4px" }}>PAPER</th>
@@ -173,11 +173,23 @@ export function Marksheet({ data }: { data: CertificateData }) {
                     <td>{s.grade}</td>
                   </tr>
                 ))}
-                <tr className="doc-total-row">
-                  <td className="doc-paper" />
-                  <td className="doc-subject">TOTAL MARKS</td>
-                  <td /><td /><td /><td /><td /><td />
-                </tr>
+                {(() => {
+                  const theoryMaxTotal = data.subjects.reduce((sum, s) => sum + (Number(s.theoryMax) || 0), 0);
+                  const practicalMaxTotal = data.subjects.reduce((sum, s) => sum + (Number(s.practicalMax) || 0), 0);
+                  const obtainedTotal = data.subjects.reduce((sum, s) => sum + (Number(s.total) || 0), 0);
+                  const maxTotal = theoryMaxTotal + practicalMaxTotal;
+                  const percentage = maxTotal > 0 ? Math.round((obtainedTotal / maxTotal) * 100) : 0;
+                  const overallGrade = percentage >= 85 ? "A+" : percentage >= 75 ? "A" : percentage >= 65 ? "B" : percentage >= 55 ? "C" : percentage >= 50 ? "D" : "F";
+                  return (
+                    <tr className="doc-total-row">
+                      <td className="doc-paper" />
+                      <td className="doc-subject">TOTAL MARKS</td>
+                      <td colSpan={4} style={{ textAlign: "center" }}>{maxTotal}</td>
+                      <td>{obtainedTotal}</td>
+                      <td>{overallGrade}</td>
+                    </tr>
+                  );
+                })()}
               </tbody>
             </table>
 
@@ -185,10 +197,10 @@ export function Marksheet({ data }: { data: CertificateData }) {
 
             {/* Grade Legend — half width, left aligned */}
             <div style={{ border: "1.2px solid #b91c1c", marginTop: 5, background: "white", width: "52%", marginLeft: 0 }}>
-              <div style={{ textAlign: "center", color: "#b91c1c", fontWeight: 700, fontSize: 10, padding: "2px 0", borderBottom: "1.2px solid #b91c1c", letterSpacing: "0.2px", lineHeight: 1.2 }}>
+              <div style={{ textAlign: "center", color: "#b91c1c", fontWeight: 700, fontSize: 12, padding: "3px 0", borderBottom: "1.2px solid #b91c1c", letterSpacing: "0.2px", lineHeight: 1.2 }}>
                 श्रेणियों का आख्यान GRADE LEGEND
               </div>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 9, textAlign: "center", lineHeight: 1.1 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, textAlign: "center", lineHeight: 1.1 }}>
                 <tbody>
                   <tr>
                     <td style={{ border: "1px solid #b91c1c", padding: "2px 0", fontWeight: 600, width: "20%" }}>ए A+</td>
@@ -227,6 +239,8 @@ export function Marksheet({ data }: { data: CertificateData }) {
                 <span style={{ display: "inline-block", width: 105, height: 38, marginBottom: 1 }} />
                 <span style={{ borderTop: "1px solid #000", paddingTop: 2, display: "inline-block", minWidth: 135, fontSize: 11 }}>Controller Of Examination</span>
               </div>
+              {/* Stamp — center watermark, closer to signature area */}
+              <img src="/stamp.png" alt="Stamp" style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: 140, height: 140, objectFit: "contain", pointerEvents: "none", opacity: 0.35 }} />
             </div>
           </div>
         </div>

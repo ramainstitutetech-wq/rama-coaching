@@ -607,7 +607,7 @@ body {
   text-align: justify;
   overflow: hidden;
   user-select: none;
-  opacity: 0.42;
+  opacity: 0.55;
 }
 
 .seal-wm {
@@ -617,8 +617,7 @@ body {
   transform: translate(-50%, -50%);
   width: 420px;
   height: 420px;
-  /* Mangalam style — exactly their opacity level */
-  opacity: 0.08;
+  opacity: 0.15;
   z-index: 1;
   pointer-events: none;
   background-image: url('/logo.jpeg');

@@ -2,22 +2,36 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { User, Mail, Phone, MapPin, Calendar, GraduationCap, Lock, Eye, EyeOff, Upload, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft, FileText, Image as ImageIcon } from "lucide-react";
+import { User, Mail, Phone, MapPin, Calendar, GraduationCap, Lock, Eye, EyeOff, Upload, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft, FileText, Image as ImageIcon, Monitor, BookOpen, Library, Shield } from "lucide-react";
 import SiteNav from "@/components/site/SiteNav";
 import SiteFooter from "@/components/site/SiteFooter";
 
-interface CourseOpt { id: string; name: string }
+interface CourseOpt { id: string; name: string; category: string }
 
-const STEPS = [
+const COURSE_CATEGORIES = [
+  { id: "computer", label: "Computer Courses", icon: Monitor, desc: "ADCA, DCA, Tally, Web Dev etc." },
+  { id: "academic", label: "Academic", icon: BookOpen, desc: "School & College courses" },
+  { id: "library", label: "Library", icon: Library, desc: "Library & Research courses" },
+  { id: "defense", label: "Defense", icon: Shield, desc: "NDA, CDS, Military prep" },
+];
+
+const FULL_STEPS = [
   { id: 1, label: "Basic Details", desc: "Name, DOB, Contact" },
   { id: 2, label: "Education & ID", desc: "Qualification, Aadhaar" },
   { id: 3, label: "Create Password", desc: "Login password" },
-  { id: 4, label: "Documents", desc: "Optional uploads" },
+  { id: 4, label: "Documents", desc: "Uploads" },
+];
+
+const SIMPLE_STEPS = [
+  { id: 1, label: "Basic Details", desc: "Name, Contact" },
+  { id: 2, label: "Create Password", desc: "Login password" },
 ];
 
 export default function RegisterPage() {
+  const [courseCategory, setCourseCategory] = useState("");
   const [step, setStep] = useState(1);
   const [courses, setCourses] = useState<CourseOpt[]>([]);
+  const [allCourses, setAllCourses] = useState<CourseOpt[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -62,19 +76,43 @@ export default function RegisterPage() {
   const [thumbUrl, setThumbUrl] = useState("");
   const [uploading, setUploading] = useState<string | null>(null);
 
-  // Option A mapping: 10th => 10th only, others => 10th+12th
+  const isComputer = courseCategory === "computer";
+  const steps = isComputer ? FULL_STEPS : SIMPLE_STEPS;
+  const maxStep = steps.length;
+
   const is10thOnly = qualification === "10th";
   function isDocRequired(key: string) {
-    if (key === "marksheet10") return true; // always required
-    if (key === "marksheet12") return !is10thOnly && !!qualification; // required if not 10th and qualification selected
+    if (key === "marksheet10") return true;
+    if (key === "marksheet12") return !is10thOnly && !!qualification;
     return false;
   }
 
   useEffect(() => {
     fetch("/api/courses?limit=100").then(r=>r.json()).then(j=>{
-      if(j.success) setCourses(j.data.map((c:any)=>({id:c.id, name:c.name})));
+      if(j.success) {
+        const mapped = j.data.map((c:any)=>({id:c.id, name:c.name, category:c.category || ""}));
+        setAllCourses(mapped);
+        setCourses(mapped);
+      }
     }).finally(()=>setLoadingCourses(false));
   }, []);
+
+  useEffect(() => {
+    if (!courseCategory) { setCourses(allCourses); return; }
+    if (isComputer) {
+      setCourses(allCourses);
+    } else {
+      const filtered = allCourses.filter(c => {
+        const cat = c.category.toLowerCase();
+        if (courseCategory === "academic") return cat.includes("academic") || cat.includes("diploma") || cat.includes("certification") || cat.includes("foundation");
+        if (courseCategory === "library") return cat.includes("library") || cat.includes("research");
+        if (courseCategory === "defense") return cat.includes("defense") || cat.includes("military") || cat.includes("nda");
+        return true;
+      });
+      setCourses(filtered.length > 0 ? filtered : allCourses);
+    }
+    setCourseId("");
+  }, [courseCategory, allCourses]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>, setter: (v:string)=>void, key: string) {
     const file = e.target.files?.[0];
@@ -95,22 +133,21 @@ export default function RegisterPage() {
       if(!fullName.trim() || !email.trim() || !phone.trim() || !courseId) return "Name, Email, Phone, Course required";
       if(!motherName.trim()) return "Mother's Name is required";
       if(!religion) return "Religion is required";
-      if(!visibleMark.trim()) return "Visible Mark is required";
       if(!address.trim() || !cityName.trim()) return "Address and City are required";
       if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return "Invalid email";
       if(phone.length < 10) return "Invalid phone";
     }
-    if(s===2){
+    if(s===2 && isComputer){
       if(!qualification) return "Qualification is required";
       if(aadhaarNumber && !/^\d{12}$/.test(aadhaarNumber.replace(/\s/g,""))) return "Aadhaar must be 12 digits";
     }
-    if(s===3){
+    if(s === (isComputer ? 3 : 2)){
       if(!password || password.length < 6) return "Password min 6 chars";
       if(password !== confirmPassword) return "Passwords do not match";
     }
-    if(s===4){
+    if(s===4 && isComputer){
       if(!marksheet10Url) return "10th Marksheet is required";
-      if(!is10thOnly && !!qualification && !marksheet12Url) return "12th Marksheet is required (not applicable only for 10th qualification)";
+      if(!is10thOnly && !!qualification && !marksheet12Url) return "12th Marksheet is required";
     }
     return null;
   }
@@ -119,21 +156,23 @@ export default function RegisterPage() {
     const err = validateStep(step);
     if(err){ setMsg({type:"err", text: err}); return; }
     setMsg(null);
-    setStep(s=>Math.min(4, s+1));
+    setStep(s=>Math.min(maxStep, s+1));
   }
   function prev(){ setMsg(null); setStep(s=>Math.max(1, s-1)); }
 
   async function handleSubmit(e: React.FormEvent){
     e.preventDefault();
-    const err = validateStep(3);
-    if(err){ setMsg({type:"err", text: err}); setStep(3); return; }
-    // Also validate step 1 required new fields before final submit
+    const passStep = isComputer ? 3 : 2;
+    const err = validateStep(passStep);
+    if(err){ setMsg({type:"err", text: err}); setStep(passStep); return; }
     const err1 = validateStep(1);
     if(err1){ setMsg({type:"err", text: err1}); setStep(1); return; }
-    const err2 = validateStep(2);
-    if(err2){ setMsg({type:"err", text: err2}); setStep(2); return; }
-    const err4 = validateStep(4);
-    if(err4){ setMsg({type:"err", text: err4}); setStep(4); return; }
+    if(isComputer){
+      const err2 = validateStep(2);
+      if(err2){ setMsg({type:"err", text: err2}); setStep(2); return; }
+      const err4 = validateStep(4);
+      if(err4){ setMsg({type:"err", text: err4}); setStep(4); return; }
+    }
     setSubmitting(true);
     setMsg(null);
     try {
@@ -142,11 +181,15 @@ export default function RegisterPage() {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({
-          fullName, parentName, motherName, dob, gender, category, religion, visibleMark,
+          fullName, parentName, motherName, dob, gender, category, religion, visibleMark: isComputer ? visibleMark : "N/A",
           phone, email, address: combinedAddress, addressLine1: address, cityName, courseId, batch,
-          qualification, passingYear, aadhaarNumber: aadhaarNumber.replace(/\s/g,""), apaarId,
+          qualification: isComputer ? qualification : "", passingYear: isComputer ? passingYear : "",
+          aadhaarNumber: isComputer ? aadhaarNumber.replace(/\s/g,"") : "", apaarId: isComputer ? apaarId : "",
           password, confirmPassword,
-          aadhaarCardUrl, marksheetUrl: marksheet10Url || marksheetUrl, marksheet10Url, marksheet12Url, fatherPanUrl, photoUrl, signatureUrl, thumbUrl,
+          aadhaarCardUrl: isComputer ? aadhaarCardUrl : "", marksheetUrl: isComputer ? (marksheet10Url || marksheetUrl) : "",
+          marksheet10Url: isComputer ? marksheet10Url : "", marksheet12Url: isComputer ? marksheet12Url : "",
+          fatherPanUrl: isComputer ? fatherPanUrl : "", photoUrl: isComputer ? photoUrl : "",
+          signatureUrl: isComputer ? signatureUrl : "", thumbUrl: isComputer ? thumbUrl : "",
         }),
       }).then(r=>r.json());
       if(!res.success){ setMsg({type:"err", text: res.error || "Registration failed"}); }
@@ -188,48 +231,85 @@ export default function RegisterPage() {
 
       <section className="py-8 px-4 bg-slate-50 min-h-[70vh]">
         <div className="max-w-3xl mx-auto">
-          {/* Step indicator */}
-          <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6">
-            <div className="flex items-center justify-between">
-              {STEPS.map((s, idx)=>(
-                <div key={s.id} className="flex items-center gap-2 flex-1">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 shrink-0 ${step >= s.id ? "bg-[#1F3354] text-white border-[#1F3354]" : "bg-white text-slate-400 border-slate-200"}`}>{step > s.id ? <CheckCircle2 className="w-4 h-4" /> : s.id}</div>
-                  <div className="hidden sm:block">
-                    <p className={`text-xs font-semibold ${step >= s.id ? "text-[#1F3354]" : "text-slate-400"}`}>{s.label}</p>
-                    <p className="text-[11px] text-slate-400">{s.desc}</p>
-                  </div>
-                  {idx < STEPS.length-1 && <div className={`flex-1 h-0.5 mx-2 ${step > s.id ? "bg-[#1F3354]" : "bg-slate-200"}`} />}
-                </div>
-              ))}
+          {/* Course Category Selection */}
+          {!courseCategory && (
+            <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+              <h3 className="text-lg font-semibold text-slate-800 text-center mb-1">Select Course Category</h3>
+              <p className="text-sm text-slate-500 text-center mb-5">Choose your course category to continue</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {COURSE_CATEGORIES.map(cat => {
+                  const Icon = cat.icon;
+                  return (
+                    <button key={cat.id} type="button" onClick={()=>setCourseCategory(cat.id)} className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-slate-200 hover:border-[#1F3354] hover:bg-[#1F3354]/5 transition cursor-pointer">
+                      <div className="w-12 h-12 rounded-full bg-[#1F3354]/10 flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-[#1F3354]" />
+                      </div>
+                      <span className="text-sm font-semibold text-slate-800">{cat.label}</span>
+                      <span className="text-[11px] text-slate-500 text-center">{cat.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Category Badge + Change button */}
+          {courseCategory && (
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                {(() => { const Icon = COURSE_CATEGORIES.find(c=>c.id===courseCategory)?.icon || Monitor; return <Icon className="w-4 h-4 text-[#1F3354]" />; })()}
+                <span className="text-sm font-semibold text-slate-800">{COURSE_CATEGORIES.find(c=>c.id===courseCategory)?.label}</span>
+                <span className="text-xs text-slate-500">— {isComputer ? "Full Form" : "Simplified Form"}</span>
+              </div>
+              <button type="button" onClick={()=>{setCourseCategory("");setStep(1);setCourseId("");}} className="text-xs text-[#1F3354] hover:underline cursor-pointer">Change</button>
+            </div>
+          )}
+
+          {/* Step indicator */}
+          {courseCategory && (
+            <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6">
+              <div className="flex items-center justify-between">
+                {steps.map((s, idx)=>(
+                  <div key={s.id} className="flex items-center gap-2 flex-1">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 shrink-0 ${step >= s.id ? "bg-[#1F3354] text-white border-[#1F3354]" : "bg-white text-slate-400 border-slate-200"}`}>{step > s.id ? <CheckCircle2 className="w-4 h-4" /> : s.id}</div>
+                    <div className="hidden sm:block">
+                      <p className={`text-xs font-semibold ${step >= s.id ? "text-[#1F3354]" : "text-slate-400"}`}>{s.label}</p>
+                      <p className="text-[11px] text-slate-400">{s.desc}</p>
+                    </div>
+                    {idx < steps.length-1 && <div className={`flex-1 h-0.5 mx-2 ${step > s.id ? "bg-[#1F3354]" : "bg-slate-200"}`} />}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {msg && <div className={`mb-4 rounded-lg px-4 py-3 text-sm flex items-center gap-2 ${msg.type==="ok" ? "bg-emerald-50 border border-emerald-200 text-emerald-700" : "bg-red-50 border border-red-200 text-red-700"}`}>{msg.type==="ok" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}{msg.text}</div>}
 
+          {courseCategory && (
           <form onSubmit={(e)=>e.preventDefault()} onKeyDown={(e)=>{ if(e.key==="Enter") e.preventDefault(); }} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
-            {/* Step 1 — Applicant & Personal Details (2.1 - 2.10, 7.6) */}
+            {/* Step 1 — Applicant & Personal Details */}
             {step===1 && (
               <div className="space-y-5">
-                <h3 className="font-semibold text-slate-800 flex items-center gap-2"><User className="w-4 h-4 text-[#1F3354]" /> Applicant Details <span className="text-xs font-normal text-slate-500">— 2.1 to 2.10</span></h3>
+                <h3 className="font-semibold text-slate-800 flex items-center gap-2"><User className="w-4 h-4 text-[#1F3354]" /> Applicant Details</h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="text-sm font-medium">2.1 Applicant&apos;s full name / आवेदक का पूरा नाम *</label>
+                    <label className="text-sm font-medium">Full Name / आवेदक का पूरा नाम *</label>
                     <input value={fullName} onChange={e=>setFullName(e.target.value)} placeholder="Full name" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">2.2.1 Father&apos;s Name / पिता का नाम *</label>
+                    <label className="text-sm font-medium">Father&apos;s Name / पिता का नाम *</label>
                     <input value={parentName} onChange={e=>setParentName(e.target.value)} placeholder="Father's name" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">2.2.2 Mother&apos;s Name / माता का नाम *</label>
+                    <label className="text-sm font-medium">Mother&apos;s Name / माता का नाम *</label>
                     <input value={motherName} onChange={e=>setMotherName(e.target.value)} placeholder="Mother's name" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> 2.4 Date of Birth / जन्म दिनांक *</label>
+                    <label className="text-sm font-medium flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Date of Birth / जन्म दिनांक</label>
                     <input type="date" value={dob} onChange={e=>setDob(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">2.3 Gender / लिंग *</label>
+                    <label className="text-sm font-medium">Gender / लिंग</label>
                     <select value={gender} onChange={e=>setGender(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]">
                       <option value="">Select</option>
                       <option value="male">Male</option>
@@ -238,26 +318,27 @@ export default function RegisterPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">2.6 Category / वर्ग *</label>
+                    <label className="text-sm font-medium">Category / वर्ग</label>
                     <select value={category} onChange={e=>setCategory(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
                       <option>General</option><option>OBC</option><option>SC</option><option>ST</option><option>EWS</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-sm font-medium">2.10 Religion / धर्म *</label>
+                    <label className="text-sm font-medium">Religion / धर्म *</label>
                     <select value={religion} onChange={e=>setReligion(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
                       <option value="">Select</option><option>Hindu</option><option>Muslim</option><option>Sikh</option><option>Christian</option><option>Other</option>
                     </select>
                   </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-sm font-medium">7.6 Visible Distinguishing Mark / स्पष्ट पहचान चिन्ह *</label>
-                    <input value={visibleMark} onChange={e=>setVisibleMark(e.target.value)} placeholder="e.g. Mole on right cheek" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
-                    <p className="text-[11px] text-slate-500 mt-1">Image should not be blurred or smudged.</p>
-                  </div>
+                  {isComputer && (
+                    <div className="sm:col-span-2">
+                      <label className="text-sm font-medium">Visible Distinguishing Mark / स्पष्ट पहचान चिन्ह *</label>
+                      <input value={visibleMark} onChange={e=>setVisibleMark(e.target.value)} placeholder="e.g. Mole on right cheek" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
+                    </div>
+                  )}
                 </div>
 
                 <div className="border-t border-slate-100 pt-4 space-y-4">
-                  <h4 className="text-sm font-semibold text-slate-700">3. Contact Details / संपर्क विवरण</h4>
+                  <h4 className="text-sm font-semibold text-slate-700">Contact Details / संपर्क विवरण</h4>
                   <div>
                     <label className="text-sm font-medium flex items-center gap-1"><Phone className="w-3.5 h-3.5" /> Mobile Number / मोबाइल नंबर *</label>
                     <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="10-digit" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
@@ -269,14 +350,14 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="border-t border-slate-100 pt-4 space-y-4">
-                  <h4 className="text-sm font-semibold text-slate-700">4. Permanent Address Details / स्थायी पता विवरण</h4>
+                  <h4 className="text-sm font-semibold text-slate-700">Address Details / पता विवरण</h4>
                   <div>
-                    <label className="text-sm font-medium">4.1 Address / पता *</label>
-                    <textarea value={address} onChange={e=>setAddress(e.target.value)} placeholder="House No, Street, Locality, Area, Landmark" rows={3} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354] resize-none" />
+                    <label className="text-sm font-medium">Address / पता *</label>
+                    <textarea value={address} onChange={e=>setAddress(e.target.value)} placeholder="House No, Street, Locality, Area, Landmark" rows={2} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354] resize-none" />
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium">4.2 City Name / शहर का नाम *</label>
+                      <label className="text-sm font-medium">City Name / शहर का नाम *</label>
                       <input value={cityName} onChange={e=>setCityName(e.target.value)} placeholder="City" className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-[#1F3354]" />
                     </div>
                     <div>
@@ -297,7 +378,8 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {step===2 && (
+            {/* Step 2 — Education (Computer only) */}
+            {step===2 && isComputer && (
               <div className="space-y-4">
                 <h3 className="font-semibold text-slate-800 flex items-center gap-2"><GraduationCap className="w-4 h-4 text-[#1F3354]" /> Education & Identification</h3>
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -324,31 +406,33 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {step===3 && (
+            {/* Step 2 (Simple) / Step 3 (Computer) — Password */}
+            {((step===2 && !isComputer) || (step===3 && isComputer)) && (
               <div className="space-y-4">
                 <h3 className="font-semibold text-slate-800 flex items-center gap-2"><Lock className="w-4 h-4 text-[#1F3354]" /> Create Password</h3>
-                <p className="text-xs text-slate-500">Ye password aap Student Portal login ke liye use karenge. Admin ke approve ke baad email me bhi ayega.</p>
+                <p className="text-xs text-slate-500">Ye password aap Student Portal login ke liye use karenge.</p>
                 <div>
                   <label className="text-sm font-medium">Create Password *</label>
                   <div className="relative mt-1">
                     <input type={showPass ? "text" : "password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 6 characters" autoComplete="new-password" className="w-full rounded-lg border border-slate-300 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#1F3354]" />
-                    <button type="button" tabIndex={-1} aria-label={showPass ? "Hide password" : "Show password"} onMouseDown={(e)=>e.preventDefault()} onClick={()=>setShowPass(v=>!v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer flex items-center justify-center z-10">{showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <button type="button" tabIndex={-1} onMouseDown={(e)=>e.preventDefault()} onClick={()=>setShowPass(v=>!v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer flex items-center justify-center z-10">{showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Confirm Password *</label>
                   <div className="relative mt-1">
                     <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} placeholder="Repeat password" autoComplete="new-password" className="w-full rounded-lg border border-slate-300 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#1F3354]" />
-                    <button type="button" tabIndex={-1} aria-label={showConfirm ? "Hide password" : "Show password"} onMouseDown={(e)=>e.preventDefault()} onClick={()=>setShowConfirm(v=>!v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer flex items-center justify-center z-10">{showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <button type="button" tabIndex={-1} onMouseDown={(e)=>e.preventDefault()} onClick={()=>setShowConfirm(v=>!v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer flex items-center justify-center z-10">{showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
                   </div>
                 </div>
               </div>
             )}
 
-            {step===4 && (
+            {/* Step 4 — Documents (Computer only) */}
+            {step===4 && isComputer && (
               <div className="space-y-4">
                 <h3 className="font-semibold text-slate-800 flex items-center gap-2"><FileText className="w-4 h-4 text-[#1F3354]" /> Document Upload</h3>
-                {is10thOnly ? <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">Qualification <strong>10th</strong> hai — sirf <strong>10th Marksheet *</strong> required hai, 12th not applicable.</p> : <p className="text-xs text-slate-500">Qualification <strong>{qualification || "—"}</strong> ke liye <strong>10th + 12th</strong> dono required hain. Father PAN optional hai.</p>}
+                {is10thOnly ? <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">Qualification <strong>10th</strong> hai — sirf <strong>10th Marksheet *</strong> required hai.</p> : <p className="text-xs text-slate-500">Qualification <strong>{qualification || "—"}</strong> ke liye <strong>10th + 12th</strong> dono required hain.</p>}
                 {[
                   { key:"aadhaarCard", label:"Aadhaar Card", setter:setAadhaarCardUrl, value:aadhaarCardUrl, icon: FileText, required: false },
                   { key:"marksheet10", label:"10th Marksheet", setter:setMarksheet10Url, value:marksheet10Url, icon: GraduationCap, required: true },
@@ -384,10 +468,11 @@ export default function RegisterPage() {
 
             <div className="flex items-center justify-between pt-4 border-t border-slate-100">
               {step>1 ? <button type="button" onClick={prev} className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-4 py-2 text-sm hover:bg-slate-50"><ArrowLeft className="w-4 h-4" /> Previous</button> : <span />}
-              {step<4 ? <button type="button" onClick={next} className="inline-flex items-center gap-1 rounded-lg bg-[#1F3354] text-white px-5 py-2 text-sm hover:bg-[#162640]">Next <ArrowRight className="w-4 h-4" /></button>
+              {step<maxStep ? <button type="button" onClick={next} className="inline-flex items-center gap-1 rounded-lg bg-[#1F3354] text-white px-5 py-2 text-sm hover:bg-[#162640]">Next <ArrowRight className="w-4 h-4" /></button>
               : <button type="button" onClick={(e)=>handleSubmit(e as any)} disabled={submitting} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 text-white px-6 py-2.5 text-sm font-semibold hover:bg-emerald-700 disabled:opacity-60">{submitting ? <><span className="w-4 h-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Submitting…</> : <><CheckCircle2 className="w-4 h-4" /> Submit Registration</>}</button>}
             </div>
           </form>
+          )}
 
           <p className="text-center text-xs text-slate-500 mt-4">Already have account? <Link href="/login" className="text-[#1F3354] font-medium hover:underline">Login</Link></p>
         </div>
