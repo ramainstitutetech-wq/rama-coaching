@@ -6,7 +6,7 @@ export function Field({
   required,
   children,
 }: {
-  label: string;
+  label: ReactNode;
   error?: string;
   required?: boolean;
   children: ReactNode;
