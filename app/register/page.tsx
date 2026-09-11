@@ -56,10 +56,19 @@ export default function RegisterPage() {
   const [marksheetUrl, setMarksheetUrl] = useState("");
   const [marksheet10Url, setMarksheet10Url] = useState("");
   const [marksheet12Url, setMarksheet12Url] = useState("");
+  const [fatherPanUrl, setFatherPanUrl] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [signatureUrl, setSignatureUrl] = useState("");
   const [thumbUrl, setThumbUrl] = useState("");
   const [uploading, setUploading] = useState<string | null>(null);
+
+  // Option A mapping: 10th => 10th only, others => 10th+12th
+  const is10thOnly = qualification === "10th";
+  function isDocRequired(key: string) {
+    if (key === "marksheet10") return true; // always required
+    if (key === "marksheet12") return !is10thOnly && !!qualification; // required if not 10th and qualification selected
+    return false;
+  }
 
   useEffect(() => {
     fetch("/api/courses?limit=100").then(r=>r.json()).then(j=>{
@@ -92,11 +101,16 @@ export default function RegisterPage() {
       if(phone.length < 10) return "Invalid phone";
     }
     if(s===2){
+      if(!qualification) return "Qualification is required";
       if(aadhaarNumber && !/^\d{12}$/.test(aadhaarNumber.replace(/\s/g,""))) return "Aadhaar must be 12 digits";
     }
     if(s===3){
       if(!password || password.length < 6) return "Password min 6 chars";
       if(password !== confirmPassword) return "Passwords do not match";
+    }
+    if(s===4){
+      if(!marksheet10Url) return "10th Marksheet is required";
+      if(!is10thOnly && !!qualification && !marksheet12Url) return "12th Marksheet is required (not applicable only for 10th qualification)";
     }
     return null;
   }
@@ -116,6 +130,10 @@ export default function RegisterPage() {
     // Also validate step 1 required new fields before final submit
     const err1 = validateStep(1);
     if(err1){ setMsg({type:"err", text: err1}); setStep(1); return; }
+    const err2 = validateStep(2);
+    if(err2){ setMsg({type:"err", text: err2}); setStep(2); return; }
+    const err4 = validateStep(4);
+    if(err4){ setMsg({type:"err", text: err4}); setStep(4); return; }
     setSubmitting(true);
     setMsg(null);
     try {
@@ -128,7 +146,7 @@ export default function RegisterPage() {
           phone, email, address: combinedAddress, addressLine1: address, cityName, courseId, batch,
           qualification, passingYear, aadhaarNumber: aadhaarNumber.replace(/\s/g,""), apaarId,
           password, confirmPassword,
-          aadhaarCardUrl, marksheetUrl: marksheet10Url || marksheetUrl, marksheet10Url, marksheet12Url, photoUrl, signatureUrl, thumbUrl,
+          aadhaarCardUrl, marksheetUrl: marksheet10Url || marksheetUrl, marksheet10Url, marksheet12Url, fatherPanUrl, photoUrl, signatureUrl, thumbUrl,
         }),
       }).then(r=>r.json());
       if(!res.success){ setMsg({type:"err", text: res.error || "Registration failed"}); }
@@ -329,31 +347,34 @@ export default function RegisterPage() {
 
             {step===4 && (
               <div className="space-y-4">
-                <h3 className="font-semibold text-slate-800 flex items-center gap-2"><FileText className="w-4 h-4 text-[#1F3354]" /> Document Upload (Optional)</h3>
-                <p className="text-xs text-slate-500">Bina upload ke bhi submit kar sakte hain. Baad me admin documents view kar sakta hai.</p>
+                <h3 className="font-semibold text-slate-800 flex items-center gap-2"><FileText className="w-4 h-4 text-[#1F3354]" /> Document Upload</h3>
+                {is10thOnly ? <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">Qualification <strong>10th</strong> hai — sirf <strong>10th Marksheet *</strong> required hai, 12th not applicable.</p> : <p className="text-xs text-slate-500">Qualification <strong>{qualification || "—"}</strong> ke liye <strong>10th + 12th</strong> dono required hain. Father PAN optional hai.</p>}
                 {[
-                  { key:"aadhaarCard", label:"Aadhaar Card", setter:setAadhaarCardUrl, value:aadhaarCardUrl, icon: FileText },
-                  { key:"marksheet10", label:"10th Marksheet", setter:setMarksheet10Url, value:marksheet10Url, icon: GraduationCap },
-                  { key:"marksheet12", label:"12th Marksheet", setter:setMarksheet12Url, value:marksheet12Url, icon: GraduationCap },
-                  { key:"photo", label:"Photo", setter:setPhotoUrl, value:photoUrl, icon: ImageIcon },
-                  { key:"signature", label:"Signature", setter:setSignatureUrl, value:signatureUrl, icon: FileText },
-                  { key:"thumb", label:"Thumb Impression", setter:setThumbUrl, value:thumbUrl, icon: FileText },
+                  { key:"aadhaarCard", label:"Aadhaar Card", setter:setAadhaarCardUrl, value:aadhaarCardUrl, icon: FileText, required: false },
+                  { key:"marksheet10", label:"10th Marksheet", setter:setMarksheet10Url, value:marksheet10Url, icon: GraduationCap, required: true },
+                  { key:"marksheet12", label:"12th Marksheet", setter:setMarksheet12Url, value:marksheet12Url, icon: GraduationCap, required: isDocRequired("marksheet12"), disabled: is10thOnly },
+                  { key:"fatherPan", label:"Father PAN", setter:setFatherPanUrl, value:fatherPanUrl, icon: FileText, required: false },
+                  { key:"photo", label:"Photo", setter:setPhotoUrl, value:photoUrl, icon: ImageIcon, required: false },
+                  { key:"signature", label:"Signature", setter:setSignatureUrl, value:signatureUrl, icon: FileText, required: false },
+                  { key:"thumb", label:"Thumb Impression", setter:setThumbUrl, value:thumbUrl, icon: FileText, required: false },
                 ].map(f=>{
                   const Icon=f.icon;
                   const isImage = f.value && /\.(jpg|jpeg|png|webp)$/i.test(f.value);
+                  const required = (f as any).required;
+                  const disabled = (f as any).disabled;
                   return (
-                    <div key={f.key} className="flex items-center gap-3 rounded-lg border border-slate-200 p-3">
+                    <div key={f.key} className={`flex items-center gap-3 rounded-lg border p-3 ${disabled ? "bg-slate-50 border-slate-200 opacity-60" : required && !f.value ? "border-amber-300 bg-amber-50/30" : "border-slate-200 bg-white"}`}>
                       <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
                         {isImage ? <img src={f.value} alt={f.label} className="w-full h-full object-cover" /> : <Icon className="w-4 h-4 text-slate-500" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-700">{f.label}</p>
-                        <p className="text-xs text-slate-500 truncate">{f.value ? "Uploaded ✓ " + f.value.split("/").pop() : "Optional — no file"}</p>
-                        {isImage && <img src={f.value} alt="preview" className="mt-2 h-16 w-16 rounded border object-cover" />}
+                        <p className="text-sm font-medium text-slate-700">{f.label} {required ? <span className="text-red-600">*</span> : <span className="text-xs font-normal text-slate-500">(Optional)</span>} {disabled && <span className="text-[11px] text-slate-500">— Not applicable for 10th</span>}</p>
+                        <p className="text-xs text-slate-500 truncate">{disabled ? "Not required for 10th qualification" : f.value ? "Uploaded ✓ " + f.value.split("/").pop() : required ? "Required — please upload" : "Optional — no file"}</p>
+                        {isImage && !disabled && <img src={f.value} alt="preview" className="mt-2 h-16 w-16 rounded border object-cover" />}
                       </div>
-                      <label className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium cursor-pointer hover:bg-slate-50">
-                        <Upload className="w-3 h-3" /> {uploading===f.key ? "Uploading…" : f.value ? "Change" : "Upload"}
-                        <input type="file" accept="image/*,.pdf" className="hidden" onChange={(e)=>handleFile(e, f.setter, f.key)} />
+                      <label className={`shrink-0 inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium ${disabled ? "border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed" : "border-slate-300 hover:bg-slate-50 cursor-pointer"}`}>
+                        <Upload className="w-3 h-3" /> {disabled ? "Disabled" : uploading===f.key ? "Uploading…" : f.value ? "Change" : required ? "Upload *" : "Upload"}
+                        <input type="file" accept="image/*,.pdf" className="hidden" disabled={!!disabled} onChange={(e)=>handleFile(e, f.setter, f.key)} />
                       </label>
                     </div>
                   );

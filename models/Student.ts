@@ -43,6 +43,7 @@ export interface IStudent extends Document {
   marksheetUrl?: string;
   marksheet10Url?: string;
   marksheet12Url?: string;
+  fatherPanUrl?: string;
   signatureUrl?: string;
   thumbUrl?: string;
   tempPassword?: string; // plain for activation email, cleared after Active
@@ -91,6 +92,7 @@ const StudentSchema = new Schema<IStudent>(
     marksheetUrl: { type: String, default: "" },
     marksheet10Url: { type: String, default: "" },
     marksheet12Url: { type: String, default: "" },
+    fatherPanUrl: { type: String, default: "" },
     signatureUrl: { type: String, default: "" },
     thumbUrl: { type: String, default: "" },
     tempPassword: { type: String, default: "", select: false },

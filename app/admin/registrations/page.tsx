@@ -46,6 +46,7 @@ interface Registration {
   marksheetUrl?: string;
   marksheet10Url?: string;
   marksheet12Url?: string;
+  fatherPanUrl?: string;
   photoUrl?: string;
   signatureUrl?: string;
   thumbUrl?: string;
@@ -117,6 +118,7 @@ export default function RegistrationsPage() {
           marksheetUrl: d.marksheetUrl,
           marksheet10Url: d.marksheet10Url,
           marksheet12Url: d.marksheet12Url,
+          fatherPanUrl: d.fatherPanUrl,
           photoUrl: d.photoUrl,
           signatureUrl: d.signatureUrl,
           thumbUrl: d.thumbUrl,
@@ -280,8 +282,10 @@ export default function RegistrationsPage() {
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-slate-800 flex items-center gap-2"><FileText className="w-4 h-4" /> Uploaded Documents (View / Download)</h4>
               <DocLink label="Aadhaar Card" url={viewItem.aadhaarCardUrl} />
-              <DocLink label="10th Marksheet" url={(viewItem as any).marksheet10Url || viewItem.marksheetUrl} />
+              <DocLink label="10th Marksheet *" url={(viewItem as any).marksheet10Url || viewItem.marksheetUrl} />
               <DocLink label="12th Marksheet" url={(viewItem as any).marksheet12Url} />
+              {viewItem.qualification === "10th" ? <p className="text-[11px] text-slate-500">12th not applicable for 10th qualification</p> : (viewItem as any).marksheet12Url ? null : <p className="text-[11px] text-amber-600">⚠️ 12th Marksheet missing (required for {viewItem.qualification || "this qualification"})</p>}
+              <DocLink label="Father PAN (Optional)" url={(viewItem as any).fatherPanUrl} />
               <DocLink label="Photo" url={viewItem.photoUrl} />
               <DocLink label="Signature" url={viewItem.signatureUrl} />
               <DocLink label="Thumb Impression" url={viewItem.thumbUrl} />

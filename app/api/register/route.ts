@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       maritalStatus, handicapped, exServiceman, ews, visibleMark, stdPhone,
       qualification, passingYear, aadhaarNumber, apaarId,
       password, confirmPassword,
-      aadhaarCardUrl, marksheetUrl, marksheet10Url, marksheet12Url, photoUrl, signatureUrl, thumbUrl,
+      aadhaarCardUrl, marksheetUrl, marksheet10Url, marksheet12Url, fatherPanUrl, photoUrl, signatureUrl, thumbUrl,
     } = body;
 
     // Validations
@@ -50,6 +50,11 @@ export async function POST(req: Request) {
     if (!motherName?.trim()) return NextResponse.json({ success: false, error: "Mother's Name is required" }, { status: 400 });
     if (!religion?.trim()) return NextResponse.json({ success: false, error: "Religion is required" }, { status: 400 });
     if (!visibleMark?.trim()) return NextResponse.json({ success: false, error: "Visible Mark is required" }, { status: 400 });
+    if (!qualification?.trim()) return NextResponse.json({ success: false, error: "Qualification is required" }, { status: 400 });
+    // Option A: 10th => only 10th required, others => 10th+12th required
+    const is10thOnly = String(qualification).trim() === "10th";
+    if (!marksheet10Url?.trim() && !marksheetUrl?.trim()) return NextResponse.json({ success: false, error: "10th Marksheet is required" }, { status: 400 });
+    if (!is10thOnly && !marksheet12Url?.trim()) return NextResponse.json({ success: false, error: "12th Marksheet is required (not applicable only for 10th qualification)" }, { status: 400 });
     const effectiveAddress = (address?.trim() || addressLine1?.trim() || "");
     if (!effectiveAddress || !cityName?.trim()) return NextResponse.json({ success: false, error: "Address and City are required" }, { status: 400 });
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return NextResponse.json({ success: false, error: "Invalid email" }, { status: 400 });
@@ -112,6 +117,7 @@ export async function POST(req: Request) {
           marksheetUrl: marksheetUrl || marksheet10Url || "",
           marksheet10Url: marksheet10Url || marksheetUrl || "",
           marksheet12Url: marksheet12Url || "",
+          fatherPanUrl: fatherPanUrl || "",
           signatureUrl: signatureUrl || "",
           thumbUrl: thumbUrl || "",
         });

@@ -93,6 +93,7 @@ export async function GET(req: Request) {
       marksheetUrl: s["marksheetUrl"] || "",
       marksheet10Url: s["marksheet10Url"] || s["marksheetUrl"] || "",
       marksheet12Url: s["marksheet12Url"] || "",
+      fatherPanUrl: s["fatherPanUrl"] || "",
       signatureUrl: s["signatureUrl"] || "",
       thumbUrl: s["thumbUrl"] || "",
     }));
