@@ -91,6 +91,8 @@ export async function GET(req: Request) {
       apaarId: s["apaarId"] || "",
       aadhaarCardUrl: s["aadhaarCardUrl"] || "",
       marksheetUrl: s["marksheetUrl"] || "",
+      marksheet10Url: s["marksheet10Url"] || s["marksheetUrl"] || "",
+      marksheet12Url: s["marksheet12Url"] || "",
       signatureUrl: s["signatureUrl"] || "",
       thumbUrl: s["thumbUrl"] || "",
     }));

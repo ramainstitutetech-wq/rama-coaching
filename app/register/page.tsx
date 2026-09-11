@@ -54,6 +54,8 @@ export default function RegisterPage() {
   // Step 4 - files
   const [aadhaarCardUrl, setAadhaarCardUrl] = useState("");
   const [marksheetUrl, setMarksheetUrl] = useState("");
+  const [marksheet10Url, setMarksheet10Url] = useState("");
+  const [marksheet12Url, setMarksheet12Url] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
   const [signatureUrl, setSignatureUrl] = useState("");
   const [thumbUrl, setThumbUrl] = useState("");
@@ -126,7 +128,7 @@ export default function RegisterPage() {
           phone, email, address: combinedAddress, addressLine1: address, cityName, courseId, batch,
           qualification, passingYear, aadhaarNumber: aadhaarNumber.replace(/\s/g,""), apaarId,
           password, confirmPassword,
-          aadhaarCardUrl, marksheetUrl, photoUrl, signatureUrl, thumbUrl,
+          aadhaarCardUrl, marksheetUrl: marksheet10Url || marksheetUrl, marksheet10Url, marksheet12Url, photoUrl, signatureUrl, thumbUrl,
         }),
       }).then(r=>r.json());
       if(!res.success){ setMsg({type:"err", text: res.error || "Registration failed"}); }
@@ -311,15 +313,15 @@ export default function RegisterPage() {
                 <div>
                   <label className="text-sm font-medium">Create Password *</label>
                   <div className="relative mt-1">
-                    <input type={showPass ? "text" : "password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 6 characters" className="w-full rounded-lg border border-slate-300 px-3 py-2.5 pr-10 text-sm outline-none focus:border-[#1F3354]" />
-                    <button type="button" onClick={()=>setShowPass(v=>!v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">{showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <input type={showPass ? "text" : "password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 6 characters" autoComplete="new-password" className="w-full rounded-lg border border-slate-300 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#1F3354]" />
+                    <button type="button" tabIndex={-1} aria-label={showPass ? "Hide password" : "Show password"} onMouseDown={(e)=>e.preventDefault()} onClick={()=>setShowPass(v=>!v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer flex items-center justify-center z-10">{showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Confirm Password *</label>
                   <div className="relative mt-1">
-                    <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} placeholder="Repeat password" className="w-full rounded-lg border border-slate-300 px-3 py-2.5 pr-10 text-sm outline-none focus:border-[#1F3354]" />
-                    <button type="button" onClick={()=>setShowConfirm(v=>!v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">{showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
+                    <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} placeholder="Repeat password" autoComplete="new-password" className="w-full rounded-lg border border-slate-300 px-3 py-2.5 pr-11 text-sm outline-none focus:border-[#1F3354]" />
+                    <button type="button" tabIndex={-1} aria-label={showConfirm ? "Hide password" : "Show password"} onMouseDown={(e)=>e.preventDefault()} onClick={()=>setShowConfirm(v=>!v)} className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer flex items-center justify-center z-10">{showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button>
                   </div>
                 </div>
               </div>
@@ -331,7 +333,8 @@ export default function RegisterPage() {
                 <p className="text-xs text-slate-500">Bina upload ke bhi submit kar sakte hain. Baad me admin documents view kar sakta hai.</p>
                 {[
                   { key:"aadhaarCard", label:"Aadhaar Card", setter:setAadhaarCardUrl, value:aadhaarCardUrl, icon: FileText },
-                  { key:"marksheet", label:"Marksheet", setter:setMarksheetUrl, value:marksheetUrl, icon: GraduationCap },
+                  { key:"marksheet10", label:"10th Marksheet", setter:setMarksheet10Url, value:marksheet10Url, icon: GraduationCap },
+                  { key:"marksheet12", label:"12th Marksheet", setter:setMarksheet12Url, value:marksheet12Url, icon: GraduationCap },
                   { key:"photo", label:"Photo", setter:setPhotoUrl, value:photoUrl, icon: ImageIcon },
                   { key:"signature", label:"Signature", setter:setSignatureUrl, value:signatureUrl, icon: FileText },
                   { key:"thumb", label:"Thumb Impression", setter:setThumbUrl, value:thumbUrl, icon: FileText },

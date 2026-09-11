@@ -103,15 +103,32 @@ export async function POST(req: Request) {
       );
     }
 
+    const parsedTotal   = Number(totalMarks)   || 100;
+    const parsedPassing = Number(passingMarks) ?? 50;
+
+    // Server-side guard: passingMarks cannot exceed totalMarks
+    if (parsedPassing > parsedTotal) {
+      return NextResponse.json(
+        { success: false, error: `Passing marks (${parsedPassing}) cannot exceed total marks (${parsedTotal})` },
+        { status: 400 }
+      );
+    }
+    if (parsedPassing < 0) {
+      return NextResponse.json(
+        { success: false, error: "Passing marks cannot be negative" },
+        { status: 400 }
+      );
+    }
+
     const doc = await MockTest.create({
       title:        title.trim(),
       description:  description.trim(),
       subject:      subject.trim(),
-      duration:     Number(duration)     || 30,
-      totalMarks:   Number(totalMarks)   || 10,
-      passingMarks: Number(passingMarks) || 5,
+      duration:     Number(duration)  || 60,
+      totalMarks:   parsedTotal,
+      passingMarks: parsedPassing,
       status:       status || "active",
-      attemptLimit: Number(attemptLimit) || 10,
+      attemptLimit: Number(attemptLimit) || 3,
       questions:    [],
     });
 

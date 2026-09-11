@@ -31,11 +31,11 @@ const emptyTestDraft: TestDraft = {
   title: "",
   description: "",
   subject: "",
-  duration: 30,
-  totalMarks: 10,
-  passingMarks: 5,
+  duration: 60,
+  totalMarks: 100,
+  passingMarks: 50,
   status: "active",
-  attemptLimit: 10,
+  attemptLimit: 3,
   courseCategory: "General",
   isFree: true,
 };
@@ -232,11 +232,35 @@ function TestsTab({ onManageQuestions }: { onManageQuestions: (t: MockTest) => v
     if (!draft.description.trim()) e.description = "Description is required";
     if (!draft.subject.trim()) e.subject = "Subject is required";
     if (!draft.duration || draft.duration < 1) e.duration = "Duration must be at least 1 min";
-    if (!draft.totalMarks || draft.totalMarks < 1) e.totalMarks = "Total marks required";
-    if (draft.passingMarks > draft.totalMarks) e.passingMarks = "Cannot exceed total marks";
+    if (!draft.totalMarks || draft.totalMarks < 1) e.totalMarks = "Total marks must be at least 1";
+    // passingMarks = 0 is valid (open test), but cannot exceed totalMarks
+    if (draft.passingMarks < 0) e.passingMarks = "Passing marks cannot be negative";
+    if (draft.passingMarks > draft.totalMarks) e.passingMarks = `Cannot exceed total marks (${draft.totalMarks})`;
     setErrors(e);
     return Object.keys(e).length === 0;
   }
+
+  // Clamp passingMarks in real-time so it never exceeds totalMarks
+  function handleTotalMarksChange(val: number) {
+    const total = val < 1 ? 1 : val;
+    const passing = draft.passingMarks > total ? total : draft.passingMarks;
+    setDraft({ ...draft, totalMarks: total, passingMarks: passing });
+    // Clear related errors immediately
+    setErrors((prev) => { const n = { ...prev }; delete n.totalMarks; delete n.passingMarks; return n; });
+  }
+
+  function handlePassingMarksChange(val: number) {
+    // Clamp between 0 and totalMarks — never allow an impossible value
+    const clamped = Math.max(0, Math.min(val, draft.totalMarks));
+    setDraft({ ...draft, passingMarks: clamped });
+    setErrors((prev) => { const n = { ...prev }; delete n.passingMarks; return n; });
+  }
+
+  // Live passing percentage helper
+  const passingPercent =
+    draft.totalMarks > 0
+      ? Math.round((draft.passingMarks / draft.totalMarks) * 100)
+      : 0;
 
   async function save() {
     if (!validate()) return;
@@ -404,15 +428,37 @@ function TestsTab({ onManageQuestions }: { onManageQuestions: (t: MockTest) => v
                 type="number"
                 min={1}
                 value={draft.totalMarks}
-                onChange={(e) => setDraft({ ...draft, totalMarks: Number(e.target.value) })}
+                onChange={(e) => handleTotalMarksChange(Number(e.target.value))}
               />
             </Field>
-            <Field label="Passing Marks" required error={errors.passingMarks}>
+            <Field
+              label={
+                <span className="flex items-center gap-2">
+                  Passing Marks
+                  {draft.totalMarks > 0 && (
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                        passingPercent >= 60
+                          ? "bg-green-100 text-green-700"
+                          : passingPercent >= 40
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {passingPercent}%
+                    </span>
+                  )}
+                </span>
+              }
+              required
+              error={errors.passingMarks}
+            >
               <TextInput
                 type="number"
                 min={0}
+                max={draft.totalMarks}
                 value={draft.passingMarks}
-                onChange={(e) => setDraft({ ...draft, passingMarks: Number(e.target.value) })}
+                onChange={(e) => handlePassingMarksChange(Number(e.target.value))}
               />
             </Field>
           </div>

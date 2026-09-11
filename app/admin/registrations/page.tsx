@@ -44,6 +44,8 @@ interface Registration {
   apaarId?: string;
   aadhaarCardUrl?: string;
   marksheetUrl?: string;
+  marksheet10Url?: string;
+  marksheet12Url?: string;
   photoUrl?: string;
   signatureUrl?: string;
   thumbUrl?: string;
@@ -113,6 +115,8 @@ export default function RegistrationsPage() {
           apaarId: d.apaarId,
           aadhaarCardUrl: d.aadhaarCardUrl,
           marksheetUrl: d.marksheetUrl,
+          marksheet10Url: d.marksheet10Url,
+          marksheet12Url: d.marksheet12Url,
           photoUrl: d.photoUrl,
           signatureUrl: d.signatureUrl,
           thumbUrl: d.thumbUrl,
@@ -276,7 +280,8 @@ export default function RegistrationsPage() {
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-slate-800 flex items-center gap-2"><FileText className="w-4 h-4" /> Uploaded Documents (View / Download)</h4>
               <DocLink label="Aadhaar Card" url={viewItem.aadhaarCardUrl} />
-              <DocLink label="Marksheet" url={viewItem.marksheetUrl} />
+              <DocLink label="10th Marksheet" url={(viewItem as any).marksheet10Url || viewItem.marksheetUrl} />
+              <DocLink label="12th Marksheet" url={(viewItem as any).marksheet12Url} />
               <DocLink label="Photo" url={viewItem.photoUrl} />
               <DocLink label="Signature" url={viewItem.signatureUrl} />
               <DocLink label="Thumb Impression" url={viewItem.thumbUrl} />

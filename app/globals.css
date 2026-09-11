@@ -554,36 +554,33 @@ body {
 .doc-shell {
   position: relative;
   overflow: hidden;
-  background: var(--frame-inner);
-  padding: 12px;
+  background: #ffffff;
+  padding: 10px;
   box-sizing: border-box;
+  border: 2.5px solid #0f2440;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
-  clip-path: polygon(
-    0 46px, 46px 0,
-    calc(50% - 34px) 0, 50% 20px, calc(50% + 34px) 0,
-    calc(100% - 46px) 0, 100% 46px,
-    100% calc(50% - 60px), 100% calc(50% + 60px),
-    100% calc(100% - 46px), calc(100% - 46px) 100%,
-    calc(50% + 34px) 100%, 50% calc(100% - 20px), calc(50% - 34px) 100%,
-    46px 100%, 0 calc(100% - 46px)
-  );
 }
 
 .doc-frame {
   position: relative;
   width: 100%;
   height: 100%;
-  background: var(--frame-outer);
-  padding: 7px;
-  clip-path: polygon(
-    0 40px, 40px 0,
-    calc(50% - 30px) 0, 50% 18px, calc(50% + 30px) 0,
-    calc(100% - 40px) 0, 100% 40px,
-    100% calc(100% - 40px), calc(100% - 40px) 100%,
-    calc(50% + 30px) 100%, 50% calc(100% - 18px), calc(50% - 30px) 100%,
-    40px 100%, 0 calc(100% - 40px)
-  );
+  background: #ffffff;
+  padding: 6px;
+  border: 5px double #b9975b;
+  outline: 1px solid #0f2440;
+  outline-offset: -1px;
+}
+
+/* subtle inner thin line + corner accents for premium look */
+.doc-frame::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid #e8dcc0;
+  pointer-events: none;
+  z-index: 3;
 }
 
 .doc-sheet {
@@ -592,14 +589,7 @@ body {
   height: 100%;
   background: #fff;
   overflow: hidden;
-  clip-path: polygon(
-    0 36px, 36px 0,
-    calc(50% - 28px) 0, 50% 16px, calc(50% + 28px) 0,
-    calc(100% - 36px) 0, 100% 36px,
-    100% calc(100% - 36px), calc(100% - 36px) 100%,
-    calc(50% + 28px) 100%, 50% calc(100% - 16px), calc(50% - 28px) 100%,
-    36px 100%, 0 calc(100% - 36px)
-  );
+  border: 1px solid #eadfbe;
 }
 
 .tile-wm {
@@ -609,16 +599,15 @@ body {
   z-index: 0;
   color: var(--wm);
   font-weight: bold;
-  font-size: 15px;
-  letter-spacing: 0.5px;
-  line-height: 38px;
-  padding: 22px 26px;
-  word-spacing: 34px;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  line-height: 26px;
+  padding: 18px 20px;
+  word-spacing: 12px;
   text-align: justify;
   overflow: hidden;
   user-select: none;
-  /* Mangalam style — subtle, around 0.55 opacity */
-  opacity: 0.55;
+  opacity: 0.42;
 }
 
 .seal-wm {
@@ -689,7 +678,7 @@ body {
 
 .doc-recognised {
   position: absolute;
-  top: 186px;
+  top: 170px;
   width: 100%;
   text-align: center;
   font-size: 24px;
@@ -700,7 +689,7 @@ body {
 
 .doc-brand {
   position: absolute;
-  top: 250px;
+  top: 234px;
   width: 100%;
   text-align: center;
   font-size: 31px;
@@ -711,7 +700,7 @@ body {
 
 .doc-logo {
   position: absolute;
-  top: 298px;
+  top: 282px;
   left: 50%;
   transform: translateX(-50%);
   width: 92px;

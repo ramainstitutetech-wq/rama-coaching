@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { LogoEmblem } from "./DocumentParts";
 
-export const WATERMARK_TEXT = Array(260).fill("RCCACE").join(" ");
+export const WATERMARK_TEXT = Array(420).fill("RCCACE").join(" ");
 
 export function CertificateShell({
   width,
@@ -69,6 +69,11 @@ export function CertificateShell({
             </svg>
 
             <div className="doc-recognised">RECOGNISED BY GOVT. OF INDIA</div>
+            <div style={{ position: "absolute", top: 186, width: "100%", textAlign: "center", fontSize: 7, lineHeight: 1.25, fontWeight: 700, color: "#000", letterSpacing: "0.12px" }}>
+              <div>REGISTERED UNDER SOCIETY ACT 1860 REGISTRATION NO. FAT/08168</div>
+              <div>REGISTERED UNDER MICRO SMALL & MEDIUM ENTERPRISES REGISTRATION NO. UDYAM-UP-UP-26-0003221</div>
+              <div>REGISTERED WITH: NITI AAYOG NGO DARPAN GOVT. OF INDIA REGISTRATION NO. UP/2026/1024159</div>
+            </div>
             <div className="doc-brand">RCCACE</div>
 
             <div className="doc-logo" aria-hidden="true">

@@ -77,6 +77,28 @@ export async function PUT(
     }
     if (body.isFree !== undefined) update.isFree = Boolean(body.isFree);
 
+    // Server-side guard: passingMarks cannot exceed totalMarks (works for partial updates too)
+    if (update.totalMarks !== undefined || update.passingMarks !== undefined) {
+      const existingDoc: any = await MockTest.findOne({ _id: params.id, deletedAt: { $exists: false } }).select("totalMarks passingMarks").lean();
+      if (!existingDoc) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
+
+      const effectiveTotal   = update.totalMarks   ?? existingDoc.totalMarks;
+      const effectivePassing = update.passingMarks ?? existingDoc.passingMarks;
+
+      if (effectivePassing < 0) {
+        return NextResponse.json(
+          { success: false, error: "Passing marks cannot be negative" },
+          { status: 400 }
+        );
+      }
+      if (effectivePassing > effectiveTotal) {
+        return NextResponse.json(
+          { success: false, error: `Passing marks (${effectivePassing}) cannot exceed total marks (${effectiveTotal})` },
+          { status: 400 }
+        );
+      }
+    }
+
     // Questions array — validate then persist with ALL bilingual fields
     if (Array.isArray(body.questions)) {
       for (const q of body.questions) {

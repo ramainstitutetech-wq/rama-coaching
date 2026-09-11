@@ -86,7 +86,12 @@ export function Marksheet({ data }: { data: CertificateData }) {
                       </textPath>
                     </text>
                   </svg>
-                  <div className="doc-recognised">RECOGNISED BY GOVT. OF INDIA</div>
+                  <div className="doc-recognised" style={{ marginBottom: 1 }}>RECOGNISED BY GOVT. OF INDIA</div>
+                  <div style={{ textAlign: "center", fontSize: 6.8, lineHeight: 1.25, fontWeight: 700, color: "#000", marginTop: 0, letterSpacing: "0.12px" }}>
+                    <div>REGISTERED UNDER SOCIETY ACT 1860 REGISTRATION NO. FAT/08168</div>
+                    <div>REGISTERED UNDER MICRO SMALL & MEDIUM ENTERPRISES REGISTRATION NO. UDYAM-UP-UP-26-0003221</div>
+                    <div>REGISTERED WITH: NITI AAYOG NGO DARPAN GOVT. OF INDIA REGISTRATION NO. UP/2026/1024159</div>
+                  </div>
                   <div className="doc-brand">RCCACE</div>
                   <div className="doc-logo">
                     <LogoEmblem />

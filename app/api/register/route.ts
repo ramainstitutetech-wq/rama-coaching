@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       maritalStatus, handicapped, exServiceman, ews, visibleMark, stdPhone,
       qualification, passingYear, aadhaarNumber, apaarId,
       password, confirmPassword,
-      aadhaarCardUrl, marksheetUrl, photoUrl, signatureUrl, thumbUrl,
+      aadhaarCardUrl, marksheetUrl, marksheet10Url, marksheet12Url, photoUrl, signatureUrl, thumbUrl,
     } = body;
 
     // Validations
@@ -109,7 +109,9 @@ export async function POST(req: Request) {
           aadhaarNumber: aadhaarNumber ? String(aadhaarNumber).replace(/\s/g,"") : "",
           apaarId: apaarId || "",
           aadhaarCardUrl: aadhaarCardUrl || "",
-          marksheetUrl: marksheetUrl || "",
+          marksheetUrl: marksheetUrl || marksheet10Url || "",
+          marksheet10Url: marksheet10Url || marksheetUrl || "",
+          marksheet12Url: marksheet12Url || "",
           signatureUrl: signatureUrl || "",
           thumbUrl: thumbUrl || "",
         });
