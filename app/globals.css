@@ -1402,9 +1402,15 @@ body {
     visibility: hidden;
   }
 
-  /* Reveal ONLY the document and its children */
+  /* Reveal ONLY the document and its children — include ID Card & Hall Ticket */
   .doc-shell,
-  .doc-shell * {
+  .doc-shell *,
+  .print-doc-root,
+  .print-doc-root *,
+  .idcard-print-root,
+  .idcard-print-root *,
+  .hallticket-print-root,
+  .hallticket-print-root * {
     visibility: visible !important;
   }
 
@@ -1419,7 +1425,9 @@ body {
   }
 
   /* The certificate document: full A4 page, no scroll, no borders */
-  .doc-shell {
+  .doc-shell,
+  .idcard-print-root,
+  .hallticket-print-root {
     position: fixed !important;
     left: 0 !important;
     top: 0 !important;
@@ -1437,6 +1445,12 @@ body {
     page-break-after: avoid !important;
     break-inside: avoid !important;
     overflow: hidden !important;
+  }
+  .idcard-print-root {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10mm !important;
   }
 
   /* Unconstrain all container elements in print */

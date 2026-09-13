@@ -21,23 +21,27 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     student.status = "active";
     await student.save();
 
-    // Try to send activation email if tempPassword exists
+    // Try to send activation email if tempPassword exists — non-blocking with timeout
     const plainPassword = student.tempPassword;
     if (plainPassword) {
       try {
-        await sendActivationEmail({
+        // 7s timeout via email lib; also race with extra safety timeout
+        const emailPromise = sendActivationEmail({
           to: student.email,
           name: student.fullName,
           email: student.email,
           password: plainPassword,
         });
+        const timeoutPromise = new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Email timeout after 8s")), 8000));
+        await Promise.race([emailPromise, timeoutPromise]);
         // Clear temp password after successful send
         student.tempPassword = undefined;
         await student.save();
       } catch (e: any) {
         console.error("[activate email failed]", e);
-        // Don't fail the activation, just log
-        return NextResponse.json({ success: true, message: "Activated but email failed: " + (e.message || "unknown"), data: { id: String(student._id), status: student.status } });
+        // Activation already done (status=active saved above) — don't revert, just inform admin
+        // Keep tempPassword so admin can retry sending later if needed
+        return NextResponse.json({ success: true, message: "Activated! Email not sent: " + (e.message || "Brevo timeout — check BREVO_API_KEY / network").slice(0,120), data: { id: String(student._id), status: student.status } });
       }
     }
 

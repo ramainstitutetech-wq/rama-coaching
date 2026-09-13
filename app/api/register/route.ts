@@ -43,31 +43,38 @@ export async function POST(req: Request) {
       aadhaarCardUrl, marksheetUrl, marksheet10Url, marksheet12Url, fatherPanUrl, photoUrl, signatureUrl, thumbUrl,
     } = body;
 
-    // Validations
+    // Basic validations
     if (!fullName?.trim() || !email?.trim() || !phone?.trim() || !courseId) {
       return NextResponse.json({ success: false, error: "Name, Email, Phone, Course are required" }, { status: 400 });
     }
     if (!motherName?.trim()) return NextResponse.json({ success: false, error: "Mother's Name is required" }, { status: 400 });
     if (!religion?.trim()) return NextResponse.json({ success: false, error: "Religion is required" }, { status: 400 });
-    if (!visibleMark?.trim()) return NextResponse.json({ success: false, error: "Visible Mark is required" }, { status: 400 });
-    if (!qualification?.trim()) return NextResponse.json({ success: false, error: "Qualification is required" }, { status: 400 });
-    // Option A: 10th => only 10th required, others => 10th+12th required
-    const is10thOnly = String(qualification).trim() === "10th";
-    if (!marksheet10Url?.trim() && !marksheetUrl?.trim()) return NextResponse.json({ success: false, error: "10th Marksheet is required" }, { status: 400 });
-    if (!is10thOnly && !marksheet12Url?.trim()) return NextResponse.json({ success: false, error: "12th Marksheet is required (not applicable only for 10th qualification)" }, { status: 400 });
     const effectiveAddress = (address?.trim() || addressLine1?.trim() || "");
     if (!effectiveAddress || !cityName?.trim()) return NextResponse.json({ success: false, error: "Address and City are required" }, { status: 400 });
+
+    // Fetch course first to decide computer vs academic validation
+    const cleanEmailPre = String(email).toLowerCase().trim();
+    const existsPre = await Student.findOne({ email: cleanEmailPre });
+    if (existsPre) return NextResponse.json({ success: false, error: "Email already registered" }, { status: 409 });
+    const coursePre = await Course.findById(courseId);
+    if (!coursePre) return NextResponse.json({ success: false, error: "Invalid course" }, { status: 400 });
+    const isAcademicCourse = String((coursePre as any).category || "").toLowerCase() === "academic";
+
+    // Computer courses require extra docs; Academic (Class 1-12, Math etc.) are simplified
+    if (!isAcademicCourse) {
+      if (!visibleMark?.trim()) return NextResponse.json({ success: false, error: "Visible Mark is required" }, { status: 400 });
+      if (!qualification?.trim()) return NextResponse.json({ success: false, error: "Qualification is required" }, { status: 400 });
+      const is10thOnly = String(qualification).trim() === "10th";
+      if (!marksheet10Url?.trim() && !marksheetUrl?.trim()) return NextResponse.json({ success: false, error: "10th Marksheet is required" }, { status: 400 });
+      if (!is10thOnly && !marksheet12Url?.trim()) return NextResponse.json({ success: false, error: "12th Marksheet is required (not applicable only for 10th qualification)" }, { status: 400 });
+    }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return NextResponse.json({ success: false, error: "Invalid email" }, { status: 400 });
     if (!password || password.length < 6) return NextResponse.json({ success: false, error: "Password min 6 chars" }, { status: 400 });
     if (password !== confirmPassword) return NextResponse.json({ success: false, error: "Passwords do not match" }, { status: 400 });
     if (aadhaarNumber && !/^\d{12}$/.test(String(aadhaarNumber).replace(/\s/g,""))) return NextResponse.json({ success: false, error: "Aadhaar must be 12 digits" }, { status: 400 });
 
-    const cleanEmail = String(email).toLowerCase().trim();
-    const exists = await Student.findOne({ email: cleanEmail });
-    if (exists) return NextResponse.json({ success: false, error: "Email already registered" }, { status: 409 });
-
-    const course = await Course.findById(courseId);
-    if (!course) return NextResponse.json({ success: false, error: "Invalid course" }, { status: 400 });
+    const cleanEmail = cleanEmailPre;
+    const course = coursePre;
 
     const passwordHash = await hashPassword(String(password));
 

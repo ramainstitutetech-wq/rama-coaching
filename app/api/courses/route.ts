@@ -70,25 +70,34 @@ export async function POST(req: Request) {
     await connectDB();
     const body = await req.json();
     const { name, description, duration, fees, category, accent, status } = body;
-    if (!name?.trim() || !description?.trim() || !duration?.trim() || !fees?.trim()) {
+    // Professional validation: accept both old duration string and new durationValue+Unit
+    const rawValue = body.durationValue;
+    const hasValidValue = rawValue !== null && rawValue !== undefined && String(rawValue).trim() !== "" && !isNaN(Number(rawValue)) && Number(rawValue) > 0;
+    const hasDurationStr = typeof duration === "string" && duration.trim().length > 0;
+    if (!name?.trim() || !description?.trim() || !fees?.trim() || (!hasValidValue && !hasDurationStr)) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
-    // Structured duration + expiry
-    const durationValue = body.durationValue != null ? Number(body.durationValue) : null;
+    // Structured duration + expiry — normalize
+    const durationValue = hasValidValue ? Number(rawValue) : null;
     const durationUnit = body.durationUnit || null;
-    const accessValue = body.accessValue != null ? Number(body.accessValue) : 0;
+    // Normalize accessValue: "00" -> 0, "" -> 0, handle leading zeros
+    const rawAccess = body.accessValue;
+    const parsedAccess = rawAccess === null || rawAccess === undefined || String(rawAccess).trim() === "" ? 0 : Number(String(rawAccess).trim());
+    const accessValue = isNaN(parsedAccess) || parsedAccess < 0 ? 0 : Math.floor(parsedAccess);
     const accessUnit = body.accessUnit || "month";
     const accessDays = calcDays(accessValue, accessUnit);
-    let finalDuration = duration.trim();
+    let finalDuration = hasDurationStr ? String(duration).trim() : "";
     if (durationValue != null && durationUnit) {
       const label = durationUnit === "week" ? (durationValue === 1 ? "Week" : "Weeks") : durationUnit === "year" ? (durationValue === 1 ? "Year" : "Years") : (durationValue === 1 ? "Month" : "Months");
       finalDuration = `${durationValue} ${label}`;
     }
+    // Fees: normalize "9500" -> keep as is, ensure string
+    const finalFees = String(fees).trim();
     const doc = await Course.create({
       name: name.trim(),
       description: description.trim(),
       duration: finalDuration,
-      fees: fees.trim(),
+      fees: finalFees,
       category: category?.trim() || "General",
       accent: accent || "#1F3354",
       imageUrl: body.imageUrl?.trim() || "",

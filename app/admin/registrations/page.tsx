@@ -106,10 +106,15 @@ export default function RegistrationsPage() {
           batch: d.batch,
           status: d.status,
           parentName: d.parentName,
+          motherName: d.motherName || "",
           dob: d.dob,
           gender: d.gender,
           category: d.category,
+          religion: d.religion || "",
           address: d.address,
+          addressLine1: d.addressLine1 || "",
+          cityName: d.cityName || "",
+          visibleMark: d.visibleMark || "",
           qualification: d.qualification,
           passingYear: d.passingYear,
           aadhaarNumber: d.aadhaarNumber,
@@ -226,8 +231,19 @@ export default function RegistrationsPage() {
                 {paged.map(r=>(
                   <tr key={r.id} className="hover:bg-slate-50">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-slate-800">{r.fullName}</p>
-                      <p className="text-xs text-slate-500">{r.rollNumber} • {r.batch}</p>
+                      <div className="flex items-center gap-3">
+                        {r.photoUrl ? (
+                          <img src={r.photoUrl} alt={r.fullName} className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-600 shrink-0">
+                            {r.fullName.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-medium text-slate-800 leading-none">{r.fullName}</p>
+                          <p className="text-xs text-slate-500 mt-1">{r.rollNumber} • {r.batch}</p>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-slate-700">{r.course}</td>
                     <td className="px-4 py-3">
@@ -258,6 +274,25 @@ export default function RegistrationsPage() {
       <Modal open={!!viewItem} onClose={()=>setViewItem(null)} title={viewItem ? `Registration — ${viewItem.fullName}` : "Details"} size="xl">
         {viewItem && (
           <div className="space-y-5 max-h-[70vh] overflow-y-auto pr-1">
+            {/* Profile photo header — visible for ID Card / Hall Ticket verification */}
+            <div className="flex items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              {viewItem.photoUrl ? (
+                <img src={viewItem.photoUrl} alt={viewItem.fullName} className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-sm shrink-0" />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-slate-200 border flex items-center justify-center text-lg font-bold text-slate-500 shrink-0">
+                  {viewItem.fullName.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-base font-semibold text-slate-800">{viewItem.fullName}</p>
+                <p className="text-xs text-slate-500">{viewItem.rollNumber} • {viewItem.course} • {viewItem.batch}</p>
+                <p className="text-xs text-slate-500">{viewItem.email} • {viewItem.phone}</p>
+                {!viewItem.photoUrl && <p className="text-xs text-amber-600 mt-1">⚠️ No profile photo uploaded — ID Card will show placeholder</p>}
+              </div>
+              {viewItem.photoUrl && (
+                <a href={viewItem.photoUrl} target="_blank" rel="noopener noreferrer" className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-[#1F3354] text-white px-3 py-1.5 text-xs hover:bg-[#162640]"><Eye className="w-3 h-3" /> View Photo</a>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div><p className="text-xs text-slate-500">2.1 Full Name</p><p className="font-medium">{viewItem.fullName}</p></div>
               <div><p className="text-xs text-slate-500">2.2.1 Father&apos;s Name</p><p className="font-medium">{viewItem.parentName || "—"}</p></div>

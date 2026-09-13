@@ -134,8 +134,10 @@ export default function CoursesAdminPage() {
     const e: Record<string, string> = {};
     if (!draft.name.trim()) e.name = "Name is required";
     if (!draft.description.trim()) e.description = "Description is required";
-    // Duration can be via value+unit or old text
-    if ((draft as any).durationValue == null && !draft.duration.trim()) e.duration = "Duration is required";
+    // Professional: Duration via value+unit OR old text — value must be >0
+    const v = (draft as any).durationValue;
+    const hasValidValue = v !== null && v !== undefined && String(v).trim() !== "" && !isNaN(Number(v)) && Number(v) > 0;
+    if (!hasValidValue && !draft.duration.trim()) e.duration = "Duration is required (enter value >0)";
     if (!draft.fees.trim()) e.fees = "Fees is required";
     setErrors(e);
     return Object.keys(e).length === 0;

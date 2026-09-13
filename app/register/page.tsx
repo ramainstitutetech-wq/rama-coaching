@@ -185,7 +185,7 @@ export default function RegisterPage() {
           password, confirmPassword,
           aadhaarCardUrl: isComputer ? aadhaarCardUrl : "", marksheetUrl: isComputer ? (marksheet10Url || marksheetUrl) : "",
           marksheet10Url: isComputer ? marksheet10Url : "", marksheet12Url: isComputer ? marksheet12Url : "",
-          fatherPanUrl: isComputer ? fatherPanUrl : "", photoUrl: isComputer ? photoUrl : "",
+          fatherPanUrl: isComputer ? fatherPanUrl : "", photoUrl: photoUrl || "",
           signatureUrl: isComputer ? signatureUrl : "", thumbUrl: isComputer ? thumbUrl : "",
         }),
       }).then(r=>r.json());
@@ -370,6 +370,30 @@ export default function RegisterPage() {
                       <option value="">{loadingCourses ? "Loading..." : "Select Course"}</option>
                       {courses.map(c=> <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
+                  </div>
+                  {/* Profile Photo — visible for ALL categories (Academic + Computer) */}
+                  <div className="border-t border-slate-100 pt-4">
+                    <h4 className="text-sm font-semibold text-slate-700 flex items-center gap-2"><ImageIcon className="w-4 h-4 text-[#1F3354]" /> Profile Photo / प्रोफाइल फोटो *</h4>
+                    <p className="text-xs text-slate-500 mt-1">Ye photo admin approval page aur ID Card / Hall Ticket pe show hoga.</p>
+                    <div className="mt-3 flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                      <div className="shrink-0">
+                        {photoUrl ? (
+                          <img src={photoUrl} alt="Profile preview" className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-sm" />
+                        ) : (
+                          <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-400">
+                            <ImageIcon className="w-8 h-8" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-700">{photoUrl ? "Photo Uploaded ✓" : "No photo yet"}</p>
+                        <p className="text-xs text-slate-500 truncate">{photoUrl ? photoUrl.split("/").pop() : "JPG/PNG, max 5MB — face clearly visible"}</p>
+                        <label className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-[#1F3354] text-white px-4 py-2 text-xs font-medium hover:bg-[#162640] cursor-pointer">
+                          <Upload className="w-3.5 h-3.5" /> {uploading==="photo" ? "Uploading…" : photoUrl ? "Change Photo" : "Upload Photo"}
+                          <input type="file" accept="image/*" className="hidden" onChange={(e)=>handleFile(e, setPhotoUrl, "photo")} />
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

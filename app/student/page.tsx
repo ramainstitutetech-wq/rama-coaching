@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   Award, FileText, Eye, Printer, User, BookOpen, Calendar,
   NotebookText, ClipboardList, Clock, HelpCircle, ArrowRight,
-  Lock, ChevronRight, Globe, CheckCircle2,
+  Lock, ChevronRight, Globe, CheckCircle2, BadgeCheck, Ticket,
 } from "lucide-react";
 import { CertificatePreview } from "@/components/certificate/CertificatePreview";
 import type { CertificateData } from "@/types/certificate";
@@ -28,9 +28,11 @@ export default function StudentDashboard() {
   const [coursesMeta, setCoursesMeta] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState<CertificateData | null>(null);
-  const [activeSection, setActiveSection] = useState<"courses" | "certs" | "marks" | "tests" | "notes">("courses");
+  const [activeSection, setActiveSection] = useState<"courses" | "certs" | "marks" | "tests" | "notes" | "idcard" | "halltickets">("courses");
   const [focusCourse, setFocusCourse] = useState<string | null>(null);
   const [focusLoading, setFocusLoading] = useState(false);
+  const [idCard, setIdCard] = useState<any>(null);
+  const [hallTickets, setHallTickets] = useState<any[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -65,6 +67,15 @@ export default function StudentDashboard() {
         }
         if (cJ.success) setCerts(cJ.data);
         if (mJ.success) setMarks(mJ.data);
+        // ID Card + Hall Tickets
+        try {
+          const [idRes, htRes] = await Promise.all([
+            fetch("/api/student/id-card", { cache: "no-store" }).then(r => r.json()).catch(() => null),
+            fetch("/api/student/hall-tickets", { cache: "no-store" }).then(r => r.json()).catch(() => null),
+          ]);
+          if (idRes?.success && idRes.data) setIdCard(idRes.data);
+          if (htRes?.success) setHallTickets(htRes.data || []);
+        } catch {}
       } catch {}
       setLoading(false);
     }
@@ -138,6 +149,8 @@ export default function StudentDashboard() {
 
   const SECTIONS = [
     { id: "courses", label: "My Courses",  icon: BookOpen,      count: allCourses.length, color: "text-emerald-600" },
+    { id: "idcard",  label: "ID Card",     icon: BadgeCheck,    count: idCard ? 1 : 0, color: "text-cyan-600" },
+    { id: "halltickets", label: "Hall Tickets", icon: Ticket,   count: hallTickets.length, color: "text-orange-600" },
     { id: "certs",  label: "Certificates", icon: Award,         count: certs.length,  color: "text-amber-600" },
     { id: "marks",  label: "Marksheets",   icon: FileText,      count: marks.length,  color: "text-blue-600"  },
     { id: "tests",  label: "Mock Tests",   icon: ClipboardList, count: tests.length,  color: "text-red-600"   },
@@ -163,7 +176,7 @@ export default function StudentDashboard() {
       </div>
 
       {/* ── Section tabs + counts ─────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
         {SECTIONS.map(s => (
           <button key={s.id} type="button" onClick={() => setActiveSection(s.id as any)}
             className={`rounded-xl border p-4 text-left transition-all ${activeSection === s.id ? "border-navy bg-navy text-white shadow-md" : "bg-white border-slate-200 hover:border-slate-300"}`}>
@@ -429,6 +442,74 @@ export default function StudentDashboard() {
                   ) : n.content ? (
                     <span className="shrink-0 text-xs text-slate-400">Inline note</span>
                   ) : null}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── ID Card ───────────────────────────────────────────────────── */}
+      {activeSection === "idcard" && (
+        <div className="rounded-xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-800 flex items-center gap-2"><BadgeCheck className="w-4 h-4 text-cyan-600" /> My ID Card</h3>
+            {idCard && <a href={`/print?id=${idCard.id}&type=idcard`} target="_blank" className="inline-flex items-center gap-1 rounded-lg bg-[#1F3354] text-white px-3 py-1.5 text-xs font-medium hover:bg-[#162640]"><Printer className="w-3.5 h-3.5" /> Print</a>}
+          </div>
+          {!idCard ? (
+            <div className="px-5 py-10 text-center">
+              <BadgeCheck className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+              <p className="text-sm text-slate-600">ID Card not generated yet</p>
+              <p className="text-xs text-slate-400 mt-1">Admin will generate after activating your account. Your profile photo will appear on ID Card.</p>
+            </div>
+          ) : (
+            <div className="p-5 flex flex-col items-center gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 w-full max-w-2xl">
+                <div className="flex-1 rounded-xl border border-slate-200 bg-white p-4 text-center">
+                  <img src={idCard.photoUrl || student?.photoUrl || ""} alt={idCard.studentName} className="w-24 h-28 object-cover border-2 border-[#1F3354] rounded-lg mx-auto" />
+                  <p className="text-sm font-bold text-slate-800 mt-2">{idCard.studentName}</p>
+                  <p className="text-xs text-slate-500">{idCard.courseName} • {idCard.batch}</p>
+                  <p className="text-xs font-mono text-[#1F3354] mt-1">{idCard.cardNumber}</p>
+                  <p className="text-xs text-slate-500">{idCard.rollNo}</p>
+                </div>
+                <div className="flex-1 space-y-2 text-sm">
+                  <div className="flex justify-between"><span className="text-slate-500">Issue Date</span><strong>{idCard.issueDate}</strong></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Valid Till</span><strong>{idCard.validTill}</strong></div>
+                  <div className="flex justify-between"><span className="text-slate-500">DOB</span><strong>{idCard.dob || "—"}</strong></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Phone</span><strong>{idCard.phone}</strong></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Status</span><span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full text-xs">{idCard.status}</span></div>
+                </div>
+              </div>
+              <a href={`/print?id=${idCard.id}&type=idcard`} target="_blank" className="inline-flex items-center gap-2 rounded-lg bg-[#1F3354] text-white px-6 py-2.5 text-sm font-semibold hover:bg-[#162640]"><Printer className="w-4 h-4" /> Print ID Card (Front & Back)</a>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Hall Tickets ─────────────────────────────────────────────── */}
+      {activeSection === "halltickets" && (
+        <div className="rounded-xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-800 flex items-center gap-2"><Ticket className="w-4 h-4 text-orange-600" /> My Hall Tickets</h3>
+            <span className="text-xs text-slate-500">{hallTickets.length} tickets</span>
+          </div>
+          {hallTickets.length === 0 ? (
+            <div className="px-5 py-10 text-center">
+              <Ticket className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+              <p className="text-sm text-slate-600">No hall tickets yet</p>
+              <p className="text-xs text-slate-400 mt-1">Admin will generate hall ticket before exam — course (Class / Physics etc.) + photo auto-filled.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {hallTickets.map((t: any) => (
+                <div key={t.id} className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50">
+                  <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center"><Ticket className="w-5 h-5" /></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{t.examName} — {t.courseName}</p>
+                    <p className="text-xs text-slate-500 flex items-center gap-2"><Calendar className="w-3 h-3" />{t.examDate} {t.examTime && `• ${t.examTime}`} • {t.examCenter} {t.hallNo && `• Hall ${t.hallNo}`}</p>
+                    <p className="text-xs text-slate-400 font-mono">{t.ticketNumber} • {t.rollNo}</p>
+                  </div>
+                  <a href={`/print?id=${t.id}&type=hallticket`} target="_blank" className="inline-flex items-center gap-1 rounded-lg bg-[#1F3354] text-white px-3 py-1.5 text-xs font-medium hover:bg-[#162640]"><Printer className="w-3.5 h-3.5" /> Print</a>
                 </div>
               ))}
             </div>

@@ -25,6 +25,7 @@ import {
   ClipboardList,
   Briefcase,
   NotebookText,
+  BadgeCheck,
 } from "lucide-react";
 
 const NAV = [
@@ -35,6 +36,8 @@ const NAV = [
   { href: "/admin/certificates", label: "Certificates", icon: Award },
   { href: "/admin/marksheets", label: "Marksheets", icon: FileText },
   { href: "/admin/courses", label: "Courses", icon: BookOpen },
+  { href: "/admin/hall-tickets", label: "Hall Tickets", icon: ClipboardList },
+  { href: "/admin/id-cards", label: "ID Cards", icon: BadgeCheck },
   { href: "/admin/mock-tests", label: "Mock Tests", icon: ClipboardList },
   { href: "/admin/enotes", label: "E-Notes", icon: NotebookText },
   { href: "/admin/testimonials", label: "Testimonials", icon: Star },
@@ -55,6 +58,8 @@ const TITLES: Record<string, string> = {
   "/admin/certificates": "Certificates",
   "/admin/marksheets": "Marksheets",
   "/admin/courses": "Courses",
+  "/admin/hall-tickets": "Hall Tickets",
+  "/admin/id-cards": "ID Cards",
   "/admin/mock-tests": "Mock Tests",
   "/admin/enotes": "E-Notes",
   "/admin/testimonials": "Testimonials",

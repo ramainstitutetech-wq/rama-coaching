@@ -73,6 +73,10 @@ export async function sendResetEmail({ to, name, resetLink, role }: SendResetEma
       Accept: "application/json",
     },
     body: JSON.stringify(payload),
+    signal: (AbortSignal as any).timeout ? (AbortSignal as any).timeout(7000) : undefined,
+  }).catch((e: any) => {
+    if (e?.name === "TimeoutError" || e?.name === "AbortError") throw new Error("Email service timeout — Brevo not reachable");
+    throw e;
   });
 
   const data = await res.json().catch(() => ({}));
@@ -134,6 +138,10 @@ export async function sendOtpEmail({ to, name, otp, purpose }: { to: string; nam
     method: "POST",
     headers: { "api-key": apiKey, "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(payload),
+    signal: (AbortSignal as any).timeout ? (AbortSignal as any).timeout(7000) : undefined,
+  }).catch((e: any) => {
+    if (e?.name === "TimeoutError" || e?.name === "AbortError") throw new Error("Email service timeout — Brevo not reachable");
+    throw e;
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -194,6 +202,10 @@ export async function sendActivationEmail({ to, name, email, password }: { to: s
     method: "POST",
     headers: { "api-key": apiKey, "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(payload),
+    signal: (AbortSignal as any).timeout ? (AbortSignal as any).timeout(7000) : undefined,
+  }).catch((e: any) => {
+    if (e?.name === "TimeoutError" || e?.name === "AbortError") throw new Error("Email service timeout — Brevo not reachable (api.brevo.com timeout)");
+    throw e;
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
