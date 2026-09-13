@@ -51,20 +51,18 @@ export function ExcellenceCertificate({ data }: { data: CertificateData }) {
             <div className="doc-flow-top">
               <div className="doc-flow-header" style={{ overflow: "visible" }}>
                 {/* Arched institution name — Old English Blackletter */}
-                <svg className="doc-arch-flow" viewBox="0 0 920 230" aria-hidden="true" style={{ overflow: "visible", width: "100%", padding: "0 10px", boxSizing: "border-box" }}>
+                <svg className="doc-arch-flow" viewBox="0 0 920 200" aria-hidden="true" style={{ overflow: "visible", width: "100%", padding: "0 10px", boxSizing: "border-box" }}>
                   <defs>
-                    <path id="archPathFlow" d="M 45,215 A 470,215 0 0 1 875,215" fill="none" />
+                    <path id="archPathFlow" d="M 45,185 A 470,185 0 0 1 875,185" fill="none" />
                   </defs>
                   <text
-                    textLength="850"
-                    lengthAdjust="spacingAndGlyphs"
+                    textLength="890"
+                    lengthAdjust="spacing"
                     style={{
-                      fontSize: 60,
+                      fontSize: 58,
                       fontFamily: '"Old English Custom", "Old English Text MT", "UnifrakturMaguntia", "Cloister Black", "Engravers Old English", cursive, serif',
                       fontWeight: "normal",
-                      letterSpacing: "0.8px",
-                      fontKerning: "none",
-                      fontVariantLigatures: "none",
+                      letterSpacing: "0.2px",
                     }}
                     fill="#000000"
                   >
@@ -77,7 +75,7 @@ export function ExcellenceCertificate({ data }: { data: CertificateData }) {
                     </textPath>
                   </text>
                 </svg>
-                <div className="doc-recognised" style={{ marginTop: -4, marginBottom: 1 }}>RECOGNISED BY GOVT. OF INDIA</div>
+                <div className="doc-recognised" style={{ marginBottom: 1 }}>RECOGNISED BY GOVT. OF INDIA</div>
                 <div style={{ textAlign: "center", fontSize: 10, lineHeight: 1.25, fontWeight: 700, color: "#000", marginTop: 0, letterSpacing: "0.50px" }}>
                   <div>REGISTERED UNDER SOCIETY ACT 1860 REGISTRATION NO. FAT/08168</div>
                   <div>REGISTERED UNDER MICRO SMALL & MEDIUM ENTERPRISES REGISTRATION NO. UDYAM-UP-UP-26-0003221</div>
