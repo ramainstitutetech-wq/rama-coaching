@@ -29,6 +29,8 @@ export interface CertificateRecord {
   isSentToStudent?: boolean;
 }
 
+export type DurationUnit = "minute" | "hour" | "day" | "week" | "month" | "year";
+
 export interface Course {
   id: string;
   name: string;
@@ -39,6 +41,11 @@ export interface Course {
   accent: string;
   imageUrl?: string;
   status: "active" | "inactive";
+  durationValue?: number | null;
+  durationUnit?: DurationUnit | null;
+  accessValue?: number;
+  accessUnit?: DurationUnit;
+  accessDays?: number;
 }
 
 export interface Testimonial {

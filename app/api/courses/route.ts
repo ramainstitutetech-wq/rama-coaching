@@ -57,9 +57,22 @@ export async function GET(req: Request) {
   }
 }
 
+function formatDuration(value: number, unit: string): string {
+  const u = (unit || "month").toLowerCase();
+  if (u === "minute") return `${value} ${value === 1 ? "Minute" : "Minutes"}`;
+  if (u === "hour") return `${value} ${value === 1 ? "Hour" : "Hours"}`;
+  if (u === "day") return `${value} ${value === 1 ? "Day" : "Days"}`;
+  if (u === "week") return `${value} ${value === 1 ? "Week" : "Weeks"}`;
+  if (u === "year") return `${value} ${value === 1 ? "Year" : "Years"}`;
+  return `${value} ${value === 1 ? "Month" : "Months"}`;
+}
+
 function calcDays(value: number, unit: string) {
   if (!value || value <= 0) return 0;
   const u = (unit || "month").toLowerCase();
+  if (u === "minute") return Math.max(1, Math.ceil(value / (24 * 60)));
+  if (u === "hour") return Math.max(1, Math.ceil(value / 24));
+  if (u === "day") return value;
   if (u === "week") return value * 7;
   if (u === "year") return value * 365;
   return value * 30; // month
@@ -88,8 +101,7 @@ export async function POST(req: Request) {
     const accessDays = calcDays(accessValue, accessUnit);
     let finalDuration = hasDurationStr ? String(duration).trim() : "";
     if (durationValue != null && durationUnit) {
-      const label = durationUnit === "week" ? (durationValue === 1 ? "Week" : "Weeks") : durationUnit === "year" ? (durationValue === 1 ? "Year" : "Years") : (durationValue === 1 ? "Month" : "Months");
-      finalDuration = `${durationValue} ${label}`;
+      finalDuration = formatDuration(durationValue, durationUnit);
     }
     // Fees: normalize "9500" -> keep as is, ensure string
     const finalFees = String(fees).trim();

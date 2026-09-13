@@ -29,9 +29,9 @@ import { courseStatusVariant } from "@/lib/status";
 import { ImageUploadField } from "@/components/ui/ImageUploadField";
 
 // courses loaded from API
-import type { Course } from "@/data/types";
+import type { Course, DurationUnit } from "@/data/types";
 
-type CourseDraft = Omit<Course, "id"> & { durationValue?: number | null; durationUnit?: "week"|"month"|"year"; accessValue?: number; accessUnit?: "week"|"month"|"year" };
+type CourseDraft = Omit<Course, "id"> & { durationValue?: number | null; durationUnit?: DurationUnit; accessValue?: number; accessUnit?: DurationUnit };
 
 const emptyDraft: CourseDraft = {
   name: "",
@@ -396,9 +396,12 @@ export default function CoursesAdminPage() {
             </Field>
             <Field label="Unit">
               <SelectField value={(draft as any).durationUnit || "month"} onChange={(e) => setDraft({ ...draft, durationUnit: e.target.value as any } as any)}>
-                <option value="week">Week</option>
-                <option value="month">Month</option>
-                <option value="year">Year</option>
+                <option value="minute">Minutes</option>
+                <option value="hour">Hours</option>
+                <option value="day">Days</option>
+                <option value="week">Weeks</option>
+                <option value="month">Months</option>
+                <option value="year">Years</option>
               </SelectField>
             </Field>
             <Field label="Fees" required error={errors.fees}>
@@ -411,9 +414,10 @@ export default function CoursesAdminPage() {
             </Field>
             <Field label="Expires Unit">
               <SelectField value={(draft as any).accessUnit || "month"} onChange={(e) => setDraft({ ...draft, accessUnit: e.target.value as any } as any)}>
-                <option value="week">Week</option>
-                <option value="month">Month</option>
-                <option value="year">Year</option>
+                <option value="day">Days</option>
+                <option value="week">Weeks</option>
+                <option value="month">Months</option>
+                <option value="year">Years</option>
               </SelectField>
             </Field>
             <div className="flex items-end pb-1">

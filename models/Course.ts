@@ -12,10 +12,10 @@ export interface ICourse extends Document {
   deletedAt?: Date;
   // Structured duration (for display + logic)
   durationValue?: number;
-  durationUnit?: "week" | "month" | "year";
+  durationUnit?: "minute" | "hour" | "day" | "week" | "month" | "year";
   // Access expiry for student (after enroll)
   accessValue?: number; // 0 = lifetime
-  accessUnit?: "week" | "month" | "year";
+  accessUnit?: "minute" | "hour" | "day" | "week" | "month" | "year";
   accessDays?: number; // computed, 0 = lifetime
 }
 
@@ -31,9 +31,9 @@ const CourseSchema = new Schema<ICourse>(
     status: { type: String, enum: ["active", "inactive"], default: "active" },
     deletedAt: { type: Date },
     durationValue: { type: Number, default: null },
-    durationUnit: { type: String, enum: ["week", "month", "year"], default: null },
+    durationUnit: { type: String, enum: ["minute", "hour", "day", "week", "month", "year"], default: null },
     accessValue: { type: Number, default: 0 },
-    accessUnit: { type: String, enum: ["week", "month", "year"], default: "month" },
+    accessUnit: { type: String, enum: ["minute", "hour", "day", "week", "month", "year"], default: "month" },
     accessDays: { type: Number, default: 0 },
   },
   { timestamps: true }

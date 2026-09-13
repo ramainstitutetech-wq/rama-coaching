@@ -22,9 +22,22 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   }
 }
 
+function formatDurationUpd(value: number, unit: string): string {
+  const u = (unit || "month").toLowerCase();
+  if (u === "minute") return `${value} ${value === 1 ? "Minute" : "Minutes"}`;
+  if (u === "hour") return `${value} ${value === 1 ? "Hour" : "Hours"}`;
+  if (u === "day") return `${value} ${value === 1 ? "Day" : "Days"}`;
+  if (u === "week") return `${value} ${value === 1 ? "Week" : "Weeks"}`;
+  if (u === "year") return `${value} ${value === 1 ? "Year" : "Years"}`;
+  return `${value} ${value === 1 ? "Month" : "Months"}`;
+}
+
 function calcDaysUpd(value: number, unit: string) {
   if (!value || value <= 0) return 0;
   const u = (unit || "month").toLowerCase();
+  if (u === "minute") return Math.max(1, Math.ceil(value / (24 * 60)));
+  if (u === "hour") return Math.max(1, Math.ceil(value / 24));
+  if (u === "day") return value;
   if (u === "week") return value * 7;
   if (u === "year") return value * 365;
   return value * 30;
@@ -53,10 +66,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
     // If durationValue+Unit both provided, recompute duration string
     if (body.durationValue != null && body.durationUnit) {
-      const v = Number(body.durationValue);
-      const u = body.durationUnit;
-      const label = u === "week" ? (v === 1 ? "Week" : "Weeks") : u === "year" ? (v === 1 ? "Year" : "Years") : (v === 1 ? "Month" : "Months");
-      update.duration = `${v} ${label}`;
+      update.duration = formatDurationUpd(Number(body.durationValue), body.durationUnit);
     }
     const doc = await Course.findOneAndUpdate({ _id: params.id, deletedAt: { $exists: false } }, update, { new: true, runValidators: true });
     if (!doc) return NextResponse.json({ success: false, error: "Course not found" }, { status: 404 });
