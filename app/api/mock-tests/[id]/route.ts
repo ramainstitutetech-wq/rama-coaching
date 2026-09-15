@@ -1,34 +1,35 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import MockTest from "@/models/MockTest";
+import { invalidateCache } from "@/lib/cache";
 
 function serializeQuestion(q: any) {
   return {
-    id:             String(q._id),
+    id:             String(q._id || q.id || ""),
     questionText:   q.questionText   ?? "",
     questionTextHi: q.questionTextHi ?? "",
-    options:        q.options        ?? [],
-    optionsHi:      q.optionsHi      ?? [],
-    correctOption:  q.correctOption,
+    options:        Array.isArray(q.options) ? q.options : [],
+    optionsHi:      Array.isArray(q.optionsHi) ? q.optionsHi : [],
+    correctOption:  q.correctOption ?? 0,
     explanation:    q.explanation    ?? "",
     explanationHi:  q.explanationHi  ?? "",
-    marks:          q.marks,
+    marks:          Number(q.marks) || 1,
   };
 }
 
 function serialize(doc: any) {
   return {
-    id:             String(doc._id),
-    title:          doc.title,
-    description:    doc.description,
-    subject:        doc.subject,
+    id:             String(doc._id || doc.id || ""),
+    title:          doc.title ?? "",
+    description:    doc.description ?? "",
+    subject:        doc.subject ?? "",
     courseCategory: doc.courseCategory ?? "General",
     isFree:         doc.isFree ?? true,
-    duration:       doc.duration,
-    totalMarks:     doc.totalMarks,
-    passingMarks:   doc.passingMarks,
-    status:         doc.status,
-    attemptLimit:   doc.attemptLimit,
+    duration:       doc.duration ?? 60,
+    totalMarks:     doc.totalMarks ?? 100,
+    passingMarks:   doc.passingMarks ?? 50,
+    status:         doc.status ?? "active",
+    attemptLimit:   doc.attemptLimit ?? 3,
     questions: (doc.questions ?? []).map(serializeQuestion),
   };
 }
@@ -148,6 +149,7 @@ export async function PUT(
         { success: false, error: "Not found" },
         { status: 404 }
       );
+    invalidateCache("mock-tests");
     return NextResponse.json({ success: true, data: serialize(doc) });
   } catch (err) {
     console.error("[PUT mock-test]", err);
@@ -175,6 +177,7 @@ export async function DELETE(
         { success: false, error: "Not found" },
         { status: 404 }
       );
+    invalidateCache("mock-tests");
     return NextResponse.json({ success: true, message: "Deleted" });
   } catch (err) {
     console.error("[DELETE mock-test]", err);

@@ -2,19 +2,19 @@ export const revalidate = 30;
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import MockTest from "@/models/MockTest";
-import { getCache, setCache } from "@/lib/cache";
+import { getCache, setCache, invalidateCache } from "@/lib/cache";
 
 function serializeQuestion(q: any, stripAnswers = false) {
   const base: any = {
-    id:             String(q._id),
+    id:             String(q._id || q.id || ""),
     questionText:   q.questionText   ?? "",
     questionTextHi: q.questionTextHi ?? "",
-    options:        q.options        ?? [],
-    optionsHi:      q.optionsHi      ?? [],
-    marks:          q.marks,
+    options:        Array.isArray(q.options) ? q.options : [],
+    optionsHi:      Array.isArray(q.optionsHi) ? q.optionsHi : [],
+    marks:          Number(q.marks) || 1,
   };
   if (!stripAnswers) {
-    base.correctOption = q.correctOption;
+    base.correctOption = q.correctOption ?? 0;
     base.explanation   = q.explanation   ?? "";
     base.explanationHi = q.explanationHi ?? "";
   }
@@ -23,17 +23,17 @@ function serializeQuestion(q: any, stripAnswers = false) {
 
 function serialize(doc: any, stripAnswers = false) {
   return {
-    id:             String(doc._id),
-    title:          doc.title,
-    description:    doc.description,
-    subject:        doc.subject,
+    id:             String(doc._id || doc.id || ""),
+    title:          doc.title ?? "",
+    description:    doc.description ?? "",
+    subject:        doc.subject ?? "",
     courseCategory: doc.courseCategory ?? "General",
     isFree:         doc.isFree ?? true,
-    duration:       doc.duration,
-    totalMarks:     doc.totalMarks,
-    passingMarks:   doc.passingMarks,
-    status:         doc.status,
-    attemptLimit:   doc.attemptLimit,
+    duration:       doc.duration ?? 60,
+    totalMarks:     doc.totalMarks ?? 100,
+    passingMarks:   doc.passingMarks ?? 50,
+    status:         doc.status ?? "active",
+    attemptLimit:   doc.attemptLimit ?? 3,
     questions: (doc.questions ?? []).map((q: any) => serializeQuestion(q, stripAnswers)),
   };
 }
@@ -67,7 +67,7 @@ export async function GET(req: Request) {
     if (freeParam === "1") filter.isFree = true;
 
     const [items, total] = await Promise.all([
-      MockTest.find(filter).select("title description subject courseCategory isFree duration totalMarks status").sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      MockTest.find(filter).select("title description subject courseCategory isFree duration totalMarks passingMarks attemptLimit questions status createdAt").sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       MockTest.countDocuments(filter),
     ]);
 
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
   try {
     await connectDB();
     const body = await req.json();
-    const { title, description, subject, duration, totalMarks, passingMarks, status, attemptLimit } = body;
+    const { title, description, subject, duration, totalMarks, passingMarks, status, attemptLimit, courseCategory, isFree } = body;
 
     if (!title?.trim() || !description?.trim() || !subject?.trim()) {
       return NextResponse.json(
@@ -121,16 +121,20 @@ export async function POST(req: Request) {
     }
 
     const doc = await MockTest.create({
-      title:        title.trim(),
-      description:  description.trim(),
-      subject:      subject.trim(),
-      duration:     Number(duration)  || 60,
-      totalMarks:   parsedTotal,
-      passingMarks: parsedPassing,
-      status:       status || "active",
-      attemptLimit: Number(attemptLimit) || 3,
-      questions:    [],
+      title:          title.trim(),
+      description:    description.trim(),
+      subject:        subject.trim(),
+      courseCategory: courseCategory || "General",
+      isFree:         isFree !== false,
+      duration:       Number(duration)  || 60,
+      totalMarks:     parsedTotal,
+      passingMarks:   parsedPassing,
+      status:         status || "active",
+      attemptLimit:   Number(attemptLimit) || 3,
+      questions:      [],
     });
+
+    invalidateCache("mock-tests");
 
     return NextResponse.json({ success: true, data: serialize(doc) }, { status: 201 });
   } catch (err) {

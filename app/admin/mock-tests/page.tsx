@@ -650,7 +650,8 @@ function QuestionsTab({
   test: MockTest;
   onTestUpdate: (t: MockTest) => void;
 }) {
-  const [questions, setQuestions] = useState<MockTestQuestion[]>(test.questions);
+  const [questions, setQuestions] = useState<MockTestQuestion[]>(test.questions || []);
+  const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
 
@@ -666,7 +667,27 @@ function QuestionsTab({
   const [translating, setTranslating] = useState(false);
   const [translateError, setTranslateError] = useState("");
 
-  useEffect(() => { setQuestions(test.questions); }, [test.id]);
+  const loadFreshQuestions = async (testId: string) => {
+    setFetching(true);
+    try {
+      const res = await fetch(`/api/mock-tests/${testId}`, { cache: "no-store" });
+      const j = await res.json();
+      if (j.success && j.data) {
+        setQuestions(j.data.questions || []);
+        onTestUpdate(j.data);
+      }
+    } catch (err) {
+      console.error("[loadFreshQuestions]", err);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    if (test?.id) {
+      loadFreshQuestions(test.id);
+    }
+  }, [test?.id]);
 
   async function persistQuestions(updated: MockTestQuestion[]) {
     setSaving(true);
@@ -678,9 +699,9 @@ function QuestionsTab({
         body: JSON.stringify({ questions: updated }),
       });
       const j = await res.json();
-      if (j.success) {
-        setQuestions(j.data.questions);
-        onTestUpdate({ ...test, questions: j.data.questions });
+      if (j.success && j.data) {
+        setQuestions(j.data.questions || []);
+        onTestUpdate(j.data);
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus("idle"), 2500);
       } else {
@@ -847,6 +868,14 @@ function QuestionsTab({
             )}
             <button
               type="button"
+              onClick={() => loadFreshQuestions(test.id)}
+              disabled={fetching}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            >
+              <RotateCcw className={`h-4 w-4 ${fetching ? "animate-spin" : ""}`} /> Refresh
+            </button>
+            <button
+              type="button"
               onClick={openAdd}
               className="inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-deep"
             >
@@ -874,7 +903,9 @@ function QuestionsTab({
         ))}
       </div>
 
-      {questions.length === 0 ? (
+      {fetching ? (
+        <Spinner label="Loading questions..." />
+      ) : questions.length === 0 ? (
         <EmptyState
           icon={HelpCircle}
           title="No questions yet"

@@ -13,6 +13,18 @@ export function setCache(key: string, data: any, ttlMs = 30_000) {
   store.set(key, { data, exp: Date.now() + ttlMs });
 }
 
+export function invalidateCache(prefix?: string) {
+  if (!prefix) {
+    store.clear();
+    return;
+  }
+  for (const key of Array.from(store.keys())) {
+    if (key.startsWith(prefix)) {
+      store.delete(key);
+    }
+  }
+}
+
 export function makeKey(url: string) {
   return url;
 }
