@@ -22,6 +22,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       const timeStr = d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
       return {
         rank: idx + 1,
+        loginId: (a.rollNumber ? a.rollNumber.toUpperCase() : String(a._id).slice(-8).toUpperCase()),
         name: a.studentName,
         rollNumber: a.rollNumber || "",
         isRamaStudent: !!a.isRamaStudent,
