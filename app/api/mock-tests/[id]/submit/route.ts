@@ -46,7 +46,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       };
     });
 
-    const totalMarks = (doc as any).totalMarks;
+    const totalMarks = (doc as any).questions.reduce((sum: number, q: any) => sum + (Number(q.marks) || 1), 0);
     const passingMarks = (doc as any).passingMarks;
     const passed = score >= passingMarks;
     const percentage = totalMarks > 0 ? Math.round((score / totalMarks) * 100) : 0;
