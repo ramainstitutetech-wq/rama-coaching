@@ -297,3 +297,227 @@ export async function sendEnrollmentRejectedEmail({ to, name, courseName, enroll
   console.log("[brevo enroll rejected] sent to", to);
   return data;
 }
+
+export async function sendFeeReceiptEmail({
+  to,
+  name,
+  rollNumber,
+  courseName,
+  receiptNo,
+  amountPaid,
+  totalFees,
+  dueAmount,
+  paymentMode,
+  paymentDate,
+}: {
+  to: string;
+  name: string;
+  rollNumber: string;
+  courseName: string;
+  receiptNo: string;
+  amountPaid: number;
+  totalFees: number;
+  dueAmount: number;
+  paymentMode: string;
+  paymentDate?: string;
+}) {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) throw new Error("BREVO_API_KEY not configured");
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || "hello@expecto.online";
+  const senderName = process.env.BREVO_SENDER_NAME || "Rama Coaching Center";
+  const formattedDate = paymentDate || new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
+  <div style="max-width:520px;margin:32px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);border:1px solid #e2e8f0;">
+    <div style="background:#1F3354;padding:24px 32px;text-align:center;color:#ffffff;">
+      <h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:0.5px;">RAMA COACHING CENTER</h1>
+      <p style="margin:4px 0 0;font-size:12px;color:#94a3b8;letter-spacing:0.3px;">AND COMPUTER EDUCATION CENTER &bull; FATEHPUR (U.P.)</p>
+      <div style="display:inline-block;background:#22c55e;color:#ffffff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;margin-top:10px;text-transform:uppercase;">
+        Fee Payment Receipt
+      </div>
+    </div>
+    
+    <div style="padding:28px 32px;">
+      <p style="color:#64748b;font-size:14px;margin:0 0 16px;">
+        Dear <strong style="color:#1e293b;">${name}</strong>,<br>
+        Your fee payment has been successfully recorded. Here are the details of your transaction:
+      </p>
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:20px;">
+        <table style="width:100%;font-size:13px;border-collapse:collapse;color:#334155;">
+          <tr>
+            <td style="padding:6px 0;color:#64748b;">Receipt No:</td>
+            <td style="padding:6px 0;font-weight:bold;text-align:right;color:#1e293b;">${receiptNo}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;">Roll Number:</td>
+            <td style="padding:6px 0;font-weight:bold;text-align:right;color:#1e293b;">${rollNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;">Course:</td>
+            <td style="padding:6px 0;font-weight:bold;text-align:right;color:#1e293b;">${courseName}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;">Payment Date:</td>
+            <td style="padding:6px 0;text-align:right;">${formattedDate}</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#64748b;">Payment Mode:</td>
+            <td style="padding:6px 0;text-align:right;font-weight:600;">${paymentMode}</td>
+          </tr>
+          <tr style="border-top:1px dashed #cbd5e1;">
+            <td style="padding:10px 0 6px;color:#15803d;font-weight:bold;font-size:14px;">Amount Paid:</td>
+            <td style="padding:10px 0 6px;font-weight:bold;text-align:right;color:#15803d;font-size:16px;">₹${amountPaid.toLocaleString("en-IN")}</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;color:#64748b;">Total Course Fee:</td>
+            <td style="padding:4px 0;text-align:right;">₹${totalFees.toLocaleString("en-IN")}</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;color:${dueAmount > 0 ? "#dc2626" : "#16a34a"};font-weight:bold;">Remaining Due:</td>
+            <td style="padding:4px 0;text-align:right;font-weight:bold;color:${dueAmount > 0 ? "#dc2626" : "#16a34a"};">
+              ₹${dueAmount.toLocaleString("en-IN")} ${dueAmount === 0 ? "(Fully Paid ✓)" : ""}
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="color:#64748b;font-size:12px;line-height:18px;margin:0 0 12px;">
+        Please keep this receipt for your records. For any inquiries regarding fees, please contact the institute office.
+      </p>
+      
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;font-size:12px;color:#1e40af;">
+        📞 <strong>Helpline:</strong> +91 99351 01221 / +91 70074 82145<br>
+        📍 <strong>Location:</strong> Rama Coaching Center, Fatehpur, Uttar Pradesh
+      </div>
+    </div>
+
+    <div style="background:#f8fafc;padding:14px 32px;text-align:center;border-top:1px solid #e2e8f0;">
+      <p style="color:#94a3b8;font-size:11px;margin:0;">© 2026 Rama Coaching Center &bull; Computer Education & Academic Excellence</p>
+    </div>
+  </div>
+</body>
+</html>`.trim();
+
+  const payload = {
+    sender: { name: senderName, email: senderEmail },
+    to: [{ email: to, name }],
+    subject: `Fee Payment Receipt [${receiptNo}] — Rama Coaching Center`,
+    htmlContent,
+  };
+
+  const res = await fetch(BREVO_API_URL, {
+    method: "POST",
+    headers: { "api-key": apiKey, "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.message || `Brevo error ${res.status}`);
+  console.log("[brevo fee receipt] sent to", to);
+  return data;
+}
+
+export async function sendFeeReminderEmail({
+  to,
+  name,
+  rollNumber,
+  courseName,
+  totalFees,
+  paidAmount,
+  dueAmount,
+  dueDate,
+}: {
+  to: string;
+  name: string;
+  rollNumber: string;
+  courseName: string;
+  totalFees: number;
+  paidAmount: number;
+  dueAmount: number;
+  dueDate?: string;
+}) {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) throw new Error("BREVO_API_KEY not configured");
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || "hello@expecto.online";
+  const senderName = process.env.BREVO_SENDER_NAME || "Rama Coaching Center";
+
+  const htmlContent = `
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
+  <div style="max-width:520px;margin:32px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);border:1px solid #e2e8f0;">
+    <div style="background:#dc2626;padding:24px 32px;text-align:center;color:#ffffff;">
+      <h1 style="margin:0;font-size:22px;font-weight:700;">RAMA COACHING CENTER</h1>
+      <p style="margin:4px 0 0;font-size:12px;color:#fecaca;">Fee Payment Due Reminder</p>
+    </div>
+    
+    <div style="padding:28px 32px;">
+      <h2 style="color:#1e293b;margin:0 0 8px;font-size:16px;">Dear ${name},</h2>
+      <p style="color:#64748b;font-size:14px;line-height:22px;margin:0 0 16px;">
+        This is a friendly reminder that an outstanding fee balance of <strong style="color:#dc2626;">₹${dueAmount.toLocaleString("en-IN")}</strong> is pending for your course:
+      </p>
+
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin-bottom:20px;">
+        <table style="width:100%;font-size:13px;border-collapse:collapse;color:#334155;">
+          <tr>
+            <td style="padding:4px 0;color:#64748b;">Roll Number:</td>
+            <td style="padding:4px 0;font-weight:bold;text-align:right;">${rollNumber}</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;color:#64748b;">Course:</td>
+            <td style="padding:4px 0;font-weight:bold;text-align:right;">${courseName}</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;color:#64748b;">Total Course Fee:</td>
+            <td style="padding:4px 0;text-align:right;">₹${totalFees.toLocaleString("en-IN")}</td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;color:#64748b;">Paid Amount:</td>
+            <td style="padding:4px 0;text-align:right;color:#15803d;font-weight:600;">₹${paidAmount.toLocaleString("en-IN")}</td>
+          </tr>
+          <tr style="border-top:1px dashed #fca5a5;">
+            <td style="padding:8px 0 4px;color:#dc2626;font-weight:bold;font-size:14px;">Balance Due:</td>
+            <td style="padding:8px 0 4px;font-weight:bold;text-align:right;color:#dc2626;font-size:16px;">₹${dueAmount.toLocaleString("en-IN")}</td>
+          </tr>
+          ${dueDate ? `<tr><td style="padding:4px 0;color:#64748b;">Due Date:</td><td style="padding:4px 0;text-align:right;font-weight:bold;">${dueDate}</td></tr>` : ""}
+        </table>
+      </div>
+
+      <p style="color:#64748b;font-size:13px;line-height:20px;margin:0 0 16px;">
+        Kindly submit your pending fee at the coaching center office or contact the administration to avoid any disruption to your classes and exams.
+      </p>
+
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;font-size:12px;color:#1e40af;">
+        📞 <strong>Office Contact:</strong> +91 99351 01221 / +91 70074 82145<br>
+        📍 <strong>Address:</strong> Rama Coaching Center, Fatehpur, Uttar Pradesh
+      </div>
+    </div>
+
+    <div style="background:#f8fafc;padding:14px 32px;text-align:center;border-top:1px solid #e2e8f0;">
+      <p style="color:#94a3b8;font-size:11px;margin:0;">© 2026 Rama Coaching Center &bull; All Rights Reserved</p>
+    </div>
+  </div>
+</body>
+</html>`.trim();
+
+  const payload = {
+    sender: { name: senderName, email: senderEmail },
+    to: [{ email: to, name }],
+    subject: `Fee Due Reminder (₹${dueAmount.toLocaleString("en-IN")}) — Rama Coaching Center`,
+    htmlContent,
+  };
+
+  const res = await fetch(BREVO_API_URL, {
+    method: "POST",
+    headers: { "api-key": apiKey, "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.message || `Brevo error ${res.status}`);
+  console.log("[brevo fee reminder] sent to", to);
+  return data;
+}
+

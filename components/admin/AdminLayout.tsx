@@ -26,6 +26,7 @@ import {
   Briefcase,
   NotebookText,
   BadgeCheck,
+  IndianRupee,
 } from "lucide-react";
 
 const NAV = [
@@ -33,6 +34,7 @@ const NAV = [
   { href: "/admin/registrations", label: "Registration Requests", icon: Users },
   { href: "/admin/students", label: "Students", icon: Users },
   { href: "/admin/staff", label: "Staff", icon: Briefcase },
+  { href: "/admin/fees", label: "Fees Management", icon: IndianRupee },
   { href: "/admin/certificates", label: "Certificates", icon: Award },
   { href: "/admin/marksheets", label: "Marksheets", icon: FileText },
   { href: "/admin/courses", label: "Courses", icon: BookOpen },
@@ -55,6 +57,7 @@ const TITLES: Record<string, string> = {
   "/admin/registrations": "Registration Requests",
   "/admin/students": "Students",
   "/admin/staff": "Staff Management",
+  "/admin/fees": "Fees Management",
   "/admin/certificates": "Certificates",
   "/admin/marksheets": "Marksheets",
   "/admin/courses": "Courses",

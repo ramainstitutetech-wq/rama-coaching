@@ -5,6 +5,7 @@ import {
   Award, FileText, Eye, Printer, User, BookOpen, Calendar,
   NotebookText, ClipboardList, Clock, HelpCircle, ArrowRight,
   Lock, ChevronRight, Globe, CheckCircle2, BadgeCheck, Ticket,
+  IndianRupee, Wallet, AlertCircle,
 } from "lucide-react";
 import { CertificatePreview } from "@/components/certificate/CertificatePreview";
 import type { CertificateData } from "@/types/certificate";
@@ -28,11 +29,12 @@ export default function StudentDashboard() {
   const [coursesMeta, setCoursesMeta] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [preview, setPreview] = useState<CertificateData | null>(null);
-  const [activeSection, setActiveSection] = useState<"courses" | "certs" | "marks" | "tests" | "notes" | "idcard" | "halltickets">("courses");
+  const [activeSection, setActiveSection] = useState<"courses" | "certs" | "marks" | "tests" | "notes" | "idcard" | "halltickets" | "fees">("courses");
   const [focusCourse, setFocusCourse] = useState<string | null>(null);
   const [focusLoading, setFocusLoading] = useState(false);
   const [idCard, setIdCard] = useState<any>(null);
   const [hallTickets, setHallTickets] = useState<any[]>([]);
+  const [feeRecord, setFeeRecord] = useState<any>(null);
 
   useEffect(() => {
     async function load() {
@@ -67,14 +69,16 @@ export default function StudentDashboard() {
         }
         if (cJ.success) setCerts(cJ.data);
         if (mJ.success) setMarks(mJ.data);
-        // ID Card + Hall Tickets
+        // ID Card + Hall Tickets + Fee Record
         try {
-          const [idRes, htRes] = await Promise.all([
+          const [idRes, htRes, feeRes] = await Promise.all([
             fetch("/api/student/id-card", { cache: "no-store" }).then(r => r.json()).catch(() => null),
             fetch("/api/student/hall-tickets", { cache: "no-store" }).then(r => r.json()).catch(() => null),
+            meJ.data?.rollNumber ? fetch(`/api/fees?search=${encodeURIComponent(meJ.data.rollNumber)}&limit=1`, { cache: "no-store" }).then(r => r.json()).catch(() => null) : null,
           ]);
           if (idRes?.success && idRes.data) setIdCard(idRes.data);
           if (htRes?.success) setHallTickets(htRes.data || []);
+          if (feeRes?.success && feeRes.data?.length) setFeeRecord(feeRes.data[0]);
         } catch {}
       } catch {}
       setLoading(false);
@@ -149,6 +153,7 @@ export default function StudentDashboard() {
 
   const SECTIONS = [
     { id: "courses", label: "My Courses",  icon: BookOpen,      count: allCourses.length, color: "text-emerald-600" },
+    { id: "fees",    label: "My Fees",     icon: IndianRupee,   count: feeRecord ? 1 : 0, color: feeRecord?.status === "unpaid" || feeRecord?.status === "partial" ? "text-red-500" : "text-green-600" },
     { id: "idcard",  label: "ID Card",     icon: BadgeCheck,    count: idCard ? 1 : 0, color: "text-cyan-600" },
     { id: "halltickets", label: "Hall Tickets", icon: Ticket,   count: hallTickets.length, color: "text-orange-600" },
     { id: "certs",  label: "Certificates", icon: Award,         count: certs.length,  color: "text-amber-600" },
@@ -283,6 +288,74 @@ export default function StudentDashboard() {
                   <p key={e.id} className="text-xs text-amber-700">• {e.courseName} — {e.enrollmentId} <span className="text-amber-600">• UTR {e.utr.slice(0,8)}…</span></p>
                 ))}
               </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── My Fees ──────────────────────────────────────────────────── */}
+      {activeSection === "fees" && (
+        <div className="rounded-xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-800 flex items-center gap-2"><IndianRupee className="w-4 h-4 text-green-600" /> My Fees & Receipts</h3>
+          </div>
+
+          {!feeRecord ? (
+            <div className="px-5 py-10 text-center">
+              <Wallet className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="text-sm text-slate-500 font-medium">No fee record found</p>
+              <p className="text-xs text-slate-400 mt-1">Please contact the coaching office for your fee details.</p>
+            </div>
+          ) : (
+            <div className="p-5 space-y-4">
+              {/* Status banner */}
+              <div className={`rounded-xl px-4 py-3 flex items-center gap-3 ${feeRecord.status === "paid" ? "bg-green-50 border border-green-200" : feeRecord.status === "partial" ? "bg-amber-50 border border-amber-200" : "bg-red-50 border border-red-200"}`}>
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${feeRecord.status === "paid" ? "bg-green-100" : feeRecord.status === "partial" ? "bg-amber-100" : "bg-red-100"}`}>
+                  {feeRecord.status === "paid" ? <CheckCircle2 className="w-5 h-5 text-green-600" /> : <AlertCircle className="w-5 h-5 text-red-500" />}
+                </div>
+                <div>
+                  <p className={`text-sm font-bold ${feeRecord.status === "paid" ? "text-green-700" : feeRecord.status === "partial" ? "text-amber-700" : "text-red-700"}`}>
+                    {feeRecord.status === "paid" ? "फीस पूरी जमा हो गई है ✓" : feeRecord.status === "partial" ? "फीस आंशिक जमा है" : "फीस जमा नहीं है"}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">{feeRecord.courseName}</p>
+                </div>
+              </div>
+
+              {/* Fee summary grid */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-slate-50 rounded-xl px-3 py-3 text-center border border-slate-100">
+                  <p className="text-xs text-slate-500 mb-1">Total Fee</p>
+                  <p className="text-base font-bold text-slate-800">₹{feeRecord.finalFees?.toLocaleString("en-IN")}</p>
+                </div>
+                <div className="bg-green-50 rounded-xl px-3 py-3 text-center border border-green-100">
+                  <p className="text-xs text-slate-500 mb-1">Paid</p>
+                  <p className="text-base font-bold text-green-700">₹{feeRecord.paidAmount?.toLocaleString("en-IN")}</p>
+                </div>
+                <div className={`rounded-xl px-3 py-3 text-center border ${feeRecord.dueAmount > 0 ? "bg-red-50 border-red-100" : "bg-green-50 border-green-100"}`}>
+                  <p className="text-xs text-slate-500 mb-1">Due</p>
+                  <p className={`text-base font-bold ${feeRecord.dueAmount > 0 ? "text-red-600" : "text-green-700"}`}>₹{feeRecord.dueAmount?.toLocaleString("en-IN")}</p>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div>
+                <div className="flex justify-between text-xs text-slate-500 mb-1.5">
+                  <span>Fee Progress</span>
+                  <span className="font-semibold">{feeRecord.finalFees > 0 ? Math.round((feeRecord.paidAmount / feeRecord.finalFees) * 100) : 0}%</span>
+                </div>
+                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full ${feeRecord.status === "paid" ? "bg-green-500" : "bg-amber-400"}`}
+                    style={{ width: `${feeRecord.finalFees > 0 ? Math.min(100, Math.round((feeRecord.paidAmount / feeRecord.finalFees) * 100)) : 0}%` }} />
+                </div>
+              </div>
+
+              {/* Contact note for due fee */}
+              {feeRecord.dueAmount > 0 && (
+                <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 text-xs text-blue-800">
+                  <p className="font-semibold mb-0.5">📞 बकाया फीस के लिए संपर्क करें:</p>
+                  <p>Rama Coaching Center: <strong>+91 99351 01221</strong></p>
+                </div>
+              )}
             </div>
           )}
         </div>
