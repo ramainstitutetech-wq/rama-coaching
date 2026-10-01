@@ -5,6 +5,7 @@ import { verifyToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Student from "@/models/Student";
 import ENote from "@/models/ENote";
+import Course from "@/models/Course";
 
 // GET /api/student/enotes
 // Returns enrolled + free notes for the logged-in student's course category.
@@ -32,9 +33,21 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
     }
 
-    const courseName = student.courseName || "";
     const { searchParams } = new URL(req.url);
-    const catParam = searchParams.get("category") || courseName;
+    const catParam = searchParams.get("category") || "";
+
+    // Resolve category: prefer query param → Course.category (exact match) → courseName fallback
+    let resolvedCategory = catParam;
+    if (!resolvedCategory) {
+      try {
+        if (student.courseId) {
+          const course = await Course.findById(student.courseId).select("category").lean() as any;
+          if (course?.category) resolvedCategory = course.category;
+        }
+      } catch {}
+      // Last fallback: use courseName stored on student
+      if (!resolvedCategory) resolvedCategory = student.courseName || "";
+    }
 
     // Build filter — show both free and enrolled-type notes for this student's category
     const filter: any = {
@@ -42,8 +55,7 @@ export async function GET(req: Request) {
       status: "active",
     };
 
-    // If category provided use it, otherwise use student's course name
-    if (catParam) filter.courseCategory = catParam;
+    if (resolvedCategory) filter.courseCategory = resolvedCategory;
 
     // Show both access types (student is enrolled so they see everything)
     // accessType filter is intentionally NOT applied — enrolled students see all
@@ -66,7 +78,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       success: true,
       data,
-      studentCourse: courseName,
+      studentCourse: resolvedCategory,
     });
   } catch (err) {
     console.error("[GET student/enotes]", err);

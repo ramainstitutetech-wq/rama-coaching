@@ -53,9 +53,15 @@ export default function StudentDashboard() {
         if (eJ?.success) setEnrollments(eJ.data || []);
         if (meJ.success) {
           setStudent(meJ.data);
-          const courseName = meJ.data?.course || meJ.data?.courseName || "";
+          // Use the resolved courseCategory (from Course.category) for accurate mock test matching.
+          // Fall back chain: courseCategory → courseName → course — ensures old records also work.
+          const categoryForFilter =
+            meJ.data?.courseCategory ||
+            meJ.data?.courseName ||
+            meJ.data?.course ||
+            "";
           const [tRes, nRes, cMetaRes] = await Promise.all([
-            fetch(`/api/mock-tests?public=1&limit=20&category=${encodeURIComponent(courseName)}`, { cache: "no-store" }).then(r => r.json()),
+            fetch(`/api/mock-tests?public=1&limit=20&category=${encodeURIComponent(categoryForFilter)}`, { cache: "no-store" }).then(r => r.json()),
             fetch(`/api/student/enotes`, { cache: "no-store" }).then(r => r.json()),
             fetch(`/api/courses`, { cache: "no-store" }).then(r => r.json()),
           ]);

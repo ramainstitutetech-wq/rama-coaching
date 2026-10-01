@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Student from "@/models/Student";
+import Course from "@/models/Course";
 
 export async function GET() {
   try {
@@ -14,6 +15,16 @@ export async function GET() {
     await connectDB();
     const student = await Student.findOne({ _id: (payload as any).id, deletedAt: { $exists: false } }).lean() as any;
     if (!student) return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
+
+    // Resolve the course's category so mock tests & e-notes can match correctly
+    let courseCategory = "";
+    try {
+      if (student.courseId) {
+        const course = await Course.findById(student.courseId).select("category").lean() as any;
+        if (course?.category) courseCategory = course.category;
+      }
+    } catch {}
+
     return NextResponse.json({
       success: true,
       data: {
@@ -25,6 +36,7 @@ export async function GET() {
         course: student.courseName,
         courseId: String(student.courseId),
         courseName: student.courseName,
+        courseCategory,          // ← actual category used in mock tests & e-notes
         batch: student.batch,
         admissionDate: student.admissionDate,
         photoUrl: student.photoUrl || "",
