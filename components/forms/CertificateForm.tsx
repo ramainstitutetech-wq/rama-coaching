@@ -48,6 +48,31 @@ export function CertificateForm({
     }
   }
 
+  function addSubject() {
+    setData((prev) => {
+      const newRow: MarkRow = {
+        paper: String(prev.subjects.length + 1),
+        subject: "",
+        theoryMax: "100",
+        theoryMin: "40",
+        practicalMax: "50",
+        practicalMin: "20",
+        total: "",
+        grade: "",
+      };
+      return { ...prev, subjects: [...prev.subjects, newRow] };
+    });
+  }
+
+  function removeSubject(index: number) {
+    setData((prev) => {
+      const updated = prev.subjects
+        .filter((_, i) => i !== index)
+        .map((s, i) => ({ ...s, paper: String(i + 1) })); // renumber after removal
+      return { ...prev, subjects: updated };
+    });
+  }
+
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setAttempted(true);
@@ -176,7 +201,7 @@ export function CertificateForm({
       {isMarksheet ? (
         <fieldset className="form-section">
           <legend className="form-section-title">Subject Marks</legend>
-          <MarkTableEditor rows={data.subjects} errors={errors.subjects} onChange={setSubject} />
+          <MarkTableEditor rows={data.subjects} errors={errors.subjects} onChange={setSubject} onRemove={removeSubject} onAdd={addSubject} />
         </fieldset>
       ) : null}
 
