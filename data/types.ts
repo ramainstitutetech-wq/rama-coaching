@@ -7,11 +7,14 @@ export interface Student {
   email: string;
   phone: string;
   course: string;
+  courseId?: string;
   batch: string;
   admissionDate: string;
   status: StudentStatus;
   avatarColor: string;
   photoUrl?: string;
+  parentName?: string;   // father's name
+  motherName?: string;
 }
 
 export type CertificateType = "excellence" | "marksheet";

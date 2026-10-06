@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FileCheck2, Award, BarChart3 } from "lucide-react";
 import type { CertificateData, DocumentType, MarkRow } from "@/types/certificate";
-import { SAMPLE_CERTIFICATE, DEFAULT_SUBJECTS } from "@/lib/defaults";
+import { SAMPLE_CERTIFICATE, DEFAULT_SUBJECTS, calcGrade, calcOverallGrade } from "@/lib/defaults";
 import { validateCertificate, hasErrors } from "@/lib/validation";
 import { TextField } from "./TextField";
 import { MarkTableEditor } from "./MarkTableEditor";
@@ -38,13 +38,50 @@ export function CertificateForm({
   }
 
   function setSubject(index: number, field: keyof MarkRow, value: string) {
-    setData((prev) => ({
-      ...prev,
-      subjects: prev.subjects.map((s, i) => (i === index ? { ...s, [field]: value } : s)),
-    }));
+    setData((prev) => {
+      const updated = prev.subjects.map((s, i) => {
+        if (i !== index) return s;
+        const newRow = { ...s, [field]: value };
+
+        // Auto-calculate total = theoryMin + practicalMin whenever marks change
+        const markFields: (keyof MarkRow)[] = ["theoryMin", "practicalMin", field as keyof MarkRow];
+        if (markFields.includes(field as keyof MarkRow)) {
+          const theory   = parseFloat(field === "theoryMin"   ? value : newRow.theoryMin)   || 0;
+          const practical= parseFloat(field === "practicalMin"? value : newRow.practicalMin) || 0;
+          const total    = theory + practical;
+          newRow.total   = total > 0 ? String(total) : "";
+
+          // Auto-calculate grade for this row
+          const theoryMax    = parseFloat(newRow.theoryMax)    || 0;
+          const practicalMax = parseFloat(newRow.practicalMax) || 0;
+          const maxTotal     = theoryMax + practicalMax;
+          newRow.grade = total > 0 && maxTotal > 0 ? calcGrade(String(total), String(maxTotal)) : "";
+        }
+
+        // If theoryMax or practicalMax changed, recalculate grade with new max
+        if (field === "theoryMax" || field === "practicalMax") {
+          const theoryMax    = parseFloat(field === "theoryMax"    ? value : newRow.theoryMax)    || 0;
+          const practicalMax = parseFloat(field === "practicalMax" ? value : newRow.practicalMax) || 0;
+          const maxTotal     = theoryMax + practicalMax;
+          const obtained     = parseFloat(newRow.total) || 0;
+          newRow.grade = obtained > 0 && maxTotal > 0 ? calcGrade(String(obtained), String(maxTotal)) : "";
+        }
+
+        return newRow;
+      });
+
+      // Auto-update overall performance grade from all subjects
+      const overallGrade = calcOverallGrade(updated);
+
+      return {
+        ...prev,
+        subjects: updated,
+        performance: overallGrade || prev.performance,
+      };
+    });
+
     if (attempted) {
-      const next = { ...data, subjects: data.subjects.map((s, i) => (i === index ? { ...s, [field]: value } : s)) };
-      setErrors(validateCertificate(next));
+      setErrors((prev) => ({ ...prev, subjects: undefined }));
     }
   }
 
@@ -53,10 +90,10 @@ export function CertificateForm({
       const newRow: MarkRow = {
         paper: String(prev.subjects.length + 1),
         subject: "",
-        theoryMax: "100",
-        theoryMin: "40",
-        practicalMax: "50",
-        practicalMin: "20",
+        theoryMax: "60",
+        theoryMin: "",
+        practicalMax: "40",
+        practicalMin: "",
         total: "",
         grade: "",
       };
@@ -68,8 +105,9 @@ export function CertificateForm({
     setData((prev) => {
       const updated = prev.subjects
         .filter((_, i) => i !== index)
-        .map((s, i) => ({ ...s, paper: String(i + 1) })); // renumber after removal
-      return { ...prev, subjects: updated };
+        .map((s, i) => ({ ...s, paper: String(i + 1) }));
+      const overallGrade = calcOverallGrade(updated);
+      return { ...prev, subjects: updated, performance: overallGrade || prev.performance };
     });
   }
 

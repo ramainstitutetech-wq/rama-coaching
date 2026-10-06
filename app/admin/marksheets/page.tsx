@@ -23,7 +23,7 @@ import type { Student as StudentType } from "@/data/types";
 import type { Student } from "@/data/types";
 import type { CertificateType } from "@/data/types";
 import type { CertificateData } from "@/types/certificate";
-import { SAMPLE_CERTIFICATE, DEFAULT_SUBJECTS } from "@/lib/defaults";
+import { SAMPLE_CERTIFICATE, DEFAULT_SUBJECTS, getSubjectsForCourse, buildEnrollmentNo, buildCourseCode, calcOverallGrade } from "@/lib/defaults";
 import { CertificateForm } from "@/components/forms/CertificateForm";
 import { CertificatePreview } from "@/components/certificate/CertificatePreview";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -104,26 +104,40 @@ function todayLabel() {
 }
 
 function buildCertData(student: Student | undefined, type: CertificateType, certNumber: string): CertificateData {
-  const base: CertificateData = { ...SAMPLE_CERTIFICATE, subjects: DEFAULT_SUBJECTS.map((s) => ({ ...s })) };
   const today = todayLabel();
-  if (!student) return {
-    ...base,
-    documentType: type,
-    certificateNumber: certNumber,
-    rollNo: certNumber,
-    slNo: (certNumber.match(/\d+/g)?.pop() ?? "001").padStart(3, "0"),
-    dated: today,
-    completionDate: today,
-  };
+  if (!student) {
+    return {
+      ...SAMPLE_CERTIFICATE,
+      subjects: DEFAULT_SUBJECTS.map((s) => ({ ...s })),
+      documentType: type,
+      certificateNumber: certNumber,
+      rollNo: certNumber,
+      slNo: (certNumber.match(/\d+/g)?.pop() ?? "001").padStart(3, "0"),
+      dated: today,
+      completionDate: today,
+    };
+  }
+
+  // Course-specific subjects template (blank marks — admin fills in)
+  const subjects = getSubjectsForCourse(student.course);
+
+  // Enrollment number: course-code based e.g. ADCA-2026-001, TY-2026-001
+  const enrollmentNo = buildEnrollmentNo(student.course, student.rollNumber);
+
+  // Course code: e.g. ADCA-2026, TY-2026
+  const courseCode = buildCourseCode(student.course);
+
   return {
-    ...base,
+    ...SAMPLE_CERTIFICATE,
     documentType: type,
     certificateNumber: certNumber,
     studentName: student.fullName,
+    fatherName: student.parentName || "",
+    motherName: student.motherName || "",
     rollNo: student.rollNumber,
-    enrollmentNo: student.id.toUpperCase(),
+    enrollmentNo,
     courseName: student.course.toUpperCase(),
-    courseCode: student.course.replace(/\s+/g, "").toUpperCase() + "-2026",
+    courseCode,
     slNo: student.rollNumber.replace(/\D/g, "").slice(-3).padStart(3, "0") || "001",
     trainingCenter: "Rama Coaching Center, Main Branch",
     centerCode: "RCC-001",
@@ -131,6 +145,7 @@ function buildCertData(student: Student | undefined, type: CertificateType, cert
     dated: today,
     place: "Fatehpur",
     photoUrl: student.photoUrl ?? "",
+    subjects,
   };
 }
 
@@ -318,6 +333,116 @@ export default function MarksheetsPage() {
   function requestSaveAndSend() { setSendConfirmOpen(true); }
   async function confirmSaveAndSend() { setSendConfirmOpen(false); await saveRecord(true, issuedNumber); }
 
+  // ── Save Both: marksheet + excellence certificate in one click ─────────────
+  const [saveBothState, setSaveBothState] = useState<"idle" | "saving">("idle");
+  const [saveBothConfirmOpen, setSaveBothConfirmOpen] = useState(false);
+
+  async function saveBoth(sendToStudent: boolean) {
+    if (!generated) return;
+    setSaveBothState("saving");
+    setSaveError(null);
+
+    try {
+      // Step 1 — save marksheet (existing number)
+      const marksheetNum = issuedNumber;
+      const marksheetPayload: Record<string, unknown> = {
+        certificateNumber: marksheetNum,
+        studentName:    generated.studentName,
+        rollNo:         generated.rollNo,
+        rollNumber:     generated.rollNo,
+        courseName:     generated.courseName,
+        courseCode:     generated.courseCode,
+        documentType:   "marksheet",
+        type:           "marksheet",
+        fatherName:     generated.fatherName,
+        motherName:     generated.motherName,
+        completionDate: generated.completionDate,
+        trainingCenter: generated.trainingCenter,
+        centerCode:     generated.centerCode,
+        performance:    generated.performance,
+        courseDuration: generated.courseDuration,
+        dated:          generated.dated,
+        place:          generated.place,
+        subjects:       generated.subjects,
+        slNo:           generated.slNo,
+        enrollmentNo:   generated.enrollmentNo,
+        status:         "issued",
+        isSentToStudent: sendToStudent,
+      };
+      const st = students.find((s) => s.rollNumber === generated.rollNo);
+      if (st) marksheetPayload.studentId = st.id;
+
+      const mRes = await fetch("/api/certificates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(marksheetPayload),
+      });
+      const mJ = await mRes.json();
+      if (!mJ.success) {
+        setSaveError(mJ.error || "Failed to save marksheet.");
+        return;
+      }
+
+      // Step 2 — fetch next number for excellence certificate
+      const nRes = await fetch("/api/certificates/next-number", { cache: "no-store" });
+      const nJ   = await nRes.json();
+      const excellenceNum = nJ.success ? nJ.next : marksheetNum + "-E";
+
+      // Step 3 — save excellence certificate (same student data, no subjects)
+      const excellencePayload: Record<string, unknown> = {
+        certificateNumber: excellenceNum,
+        studentName:    generated.studentName,
+        rollNo:         generated.rollNo,
+        rollNumber:     generated.rollNo,
+        courseName:     generated.courseName,
+        courseCode:     generated.courseCode,
+        documentType:   "excellence",
+        type:           "excellence",
+        fatherName:     generated.fatherName,
+        motherName:     generated.motherName,
+        completionDate: generated.completionDate,
+        trainingCenter: generated.trainingCenter,
+        centerCode:     generated.centerCode,
+        performance:    generated.performance,
+        courseDuration: generated.courseDuration,
+        dated:          generated.dated,
+        place:          generated.place,
+        slNo:           generated.slNo,
+        enrollmentNo:   generated.enrollmentNo,
+        status:         "issued",
+        isSentToStudent: sendToStudent,
+      };
+      if (st) excellencePayload.studentId = st.id;
+
+      const eRes = await fetch("/api/certificates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(excellencePayload),
+      });
+      const eJ = await eRes.json();
+      if (!eJ.success) {
+        // Marksheet saved but excellence failed — warn but don't block
+        pushToast("info", `Marksheet ${marksheetNum} saved. Excellence certificate failed: ${eJ.error || "unknown error"}`);
+      } else {
+        pushToast("success", sendToStudent
+          ? `Both documents saved & sent to student portal. Marksheet: ${marksheetNum} · Certificate: ${excellenceNum}`
+          : `Both saved to admin records. Marksheet: ${marksheetNum} · Certificate: ${excellenceNum}`
+        );
+      }
+
+      await fetchAll();
+      await fetchNextNumber();
+      setIssueOpen(false);
+      setGenerated(null);
+      setIssueInitial(null);
+      setSaveError(null);
+    } catch {
+      setSaveError("Network error. Please check your connection and try again.");
+    } finally {
+      setSaveBothState("idle");
+    }
+  }
+
   async function handleSend(id: string, studentName: string) {
     setSendingRowId(id);
     try {
@@ -446,19 +571,21 @@ export default function MarksheetsPage() {
                             <div className="flex items-start gap-3 border-b border-slate-100 bg-blue-50/60 px-4 py-3">
                               <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
                               <p className="text-xs leading-relaxed text-blue-800">
-                                <strong>Save</strong> stores this marksheet in admin records only — the student won't see it yet.{" "}
-                                <strong>Save &amp; Send</strong> also makes it visible in the student's portal immediately.
+                                <strong>Save</strong> — marksheet only, admin records.{" "}
+                                <strong>Save &amp; Send</strong> — marksheet only, visible to student.{" "}
+                                <strong>Save Both</strong> — saves marksheet <em>and</em> excellence certificate together and sends both to student.
                               </p>
                             </div>
 
-                            {/* Buttons */}
-                            <div className="grid grid-cols-2 divide-x divide-slate-200">
+                            {/* Buttons — 3 columns */}
+                            <div className="grid grid-cols-3 divide-x divide-slate-200">
+                              {/* Save marksheet only */}
                               <button
                                 type="button"
                                 onClick={() => saveRecord(false, issuedNumber)}
-                                disabled={isSaving}
-                                title="Save to admin records only"
-                                className="flex flex-col items-center gap-1.5 px-4 py-4 text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                disabled={isSaving || saveBothState === "saving"}
+                                title="Save marksheet to admin records only"
+                                className="flex flex-col items-center gap-1.5 px-3 py-4 text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 {saveState === "saving"
                                   ? <Loader2 className="h-5 w-5 animate-spin text-navy" />
@@ -467,15 +594,16 @@ export default function MarksheetsPage() {
                                 <span className="text-xs font-semibold">
                                   {saveState === "saving" ? "Saving…" : "Save"}
                                 </span>
-                                <span className="text-[10px] text-slate-400 leading-tight text-center">Admin records only</span>
+                                <span className="text-[10px] text-slate-400 leading-tight text-center">Marksheet only</span>
                               </button>
 
+                              {/* Save & Send marksheet only */}
                               <button
                                 type="button"
                                 onClick={requestSaveAndSend}
-                                disabled={isSaving}
-                                title="Save and send to student portal"
-                                className="flex flex-col items-center gap-1.5 px-4 py-4 text-navy transition-colors hover:bg-navy/5 disabled:cursor-not-allowed disabled:opacity-50"
+                                disabled={isSaving || saveBothState === "saving"}
+                                title="Save and send marksheet to student portal"
+                                className="flex flex-col items-center gap-1.5 px-3 py-4 text-navy transition-colors hover:bg-navy/5 disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 {saveState === "send-saving"
                                   ? <Loader2 className="h-5 w-5 animate-spin text-navy" />
@@ -484,7 +612,25 @@ export default function MarksheetsPage() {
                                 <span className="text-xs font-semibold">
                                   {saveState === "send-saving" ? "Sending…" : "Save & Send"}
                                 </span>
-                                <span className="text-[10px] text-slate-400 leading-tight text-center">Visible to student</span>
+                                <span className="text-[10px] text-slate-400 leading-tight text-center">Marksheet to portal</span>
+                              </button>
+
+                              {/* Save Both — marksheet + excellence certificate */}
+                              <button
+                                type="button"
+                                onClick={() => setSaveBothConfirmOpen(true)}
+                                disabled={isSaving || saveBothState === "saving"}
+                                title="Save marksheet + excellence certificate together"
+                                className="flex flex-col items-center gap-1.5 px-3 py-4 text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {saveBothState === "saving"
+                                  ? <Loader2    className="h-5 w-5 animate-spin text-emerald-600" />
+                                  : <Award className="h-5 w-5 text-emerald-600" />
+                                }
+                                <span className="text-xs font-semibold">
+                                  {saveBothState === "saving" ? "Saving…" : "Save Both"}
+                                </span>
+                                <span className="text-[10px] text-slate-400 leading-tight text-center">Marksheet + Certificate</span>
                               </button>
                             </div>
                           </div>
@@ -635,6 +781,18 @@ export default function MarksheetsPage() {
           title="Save & Send to Student?"
           message={`Marksheet ${issuedNumber} will be saved and immediately made visible to the student in their portal. This can be reversed from the records table.`}
           confirmText="Yes, Save & Send"
+          cancelText="Cancel"
+        />
+
+        {/* ── Save Both confirm ── */}
+        <ConfirmDialog
+          open={saveBothConfirmOpen}
+          onClose={() => setSaveBothConfirmOpen(false)}
+          onConfirm={async () => { setSaveBothConfirmOpen(false); await saveBoth(true); }}
+          variant="primary"
+          title="Save Marksheet + Certificate Together?"
+          message={`This will save the marksheet (${issuedNumber}) AND automatically generate a new Excellence Certificate for ${generated?.studentName || "this student"} — both will be sent to the student's portal immediately.`}
+          confirmText="Yes, Save Both & Send"
           cancelText="Cancel"
         />
 
