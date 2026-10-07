@@ -3,20 +3,26 @@ import type { CertificateData, MarkRow } from "@/types/certificate";
 // ─── Course code mapping ──────────────────────────────────────────────────────
 // Maps course name keywords → short code used in enrollment number & courseCode
 export const COURSE_CODE_MAP: Record<string, string> = {
-  "ADCA":              "ADCA",
-  "DCA":               "DCA",
-  "TALLY":             "TY",
-  "CCC":               "CCC",
-  "CCC+":              "CCCP",
-  "O-LEVEL":           "OL",
-  "O LEVEL":           "OL",
-  "O-LEVEL — 12":      "OL",
-  "O LEVEL — 12":      "OL",
-  "O LEVEL - 12":      "OL",
-  "RSCIT":             "RSCIT",
-  "DIGITAL MARKETING": "DM",
-  "WEB DEVELOPMENT":   "WD",
-  "OTHER":             "GEN",
+  "ADCA":                    "ADCA",
+  "DCA":                     "DCA",
+  "TALLY":                   "TY",
+  "TALLY PRIME":             "TY",
+  "TALLY PRIME WITH GST":    "TY",
+  "TALLY ERP":               "TY",
+  "TALLY ERP 9.0":           "TY",
+  "TALLY ERP 9.0 WITH GST":  "TY",
+  "CCC":                     "CCC",
+  "CCC+":                    "CCCP",
+  "O-LEVEL":                 "OL",
+  "O LEVEL":                 "OL",
+  "O-LEVEL — 12":            "OL",
+  "O LEVEL — 12":            "OL",
+  "O LEVEL - 12":            "OL",
+  "O-LEVEL - 12":            "OL",
+  "RSCIT":                   "RSCIT",
+  "DIGITAL MARKETING":       "DM",
+  "WEB DEVELOPMENT":         "WD",
+  "OTHER":                   "GEN",
 };
 
 // Derive short code from a course name string (case-insensitive, partial match)
@@ -24,9 +30,10 @@ export function getCourseCode(courseName: string): string {
   const upper = courseName.toUpperCase().trim();
   // Exact match first
   if (COURSE_CODE_MAP[upper]) return COURSE_CODE_MAP[upper];
-  // Partial match
-  for (const [key, code] of Object.entries(COURSE_CODE_MAP)) {
-    if (upper.includes(key)) return code;
+  // Partial match — longest key first to avoid "TALLY" matching before "TALLY PRIME WITH GST"
+  const sortedKeys = Object.keys(COURSE_CODE_MAP).sort((a, b) => b.length - a.length);
+  for (const key of sortedKeys) {
+    if (upper.includes(key)) return COURSE_CODE_MAP[key];
   }
   // Fallback: first word(s) uppercased, max 5 chars
   return upper.replace(/\s+/g, "").slice(0, 5);
@@ -87,6 +94,24 @@ export const COURSE_SUBJECTS: Record<string, MarkRow[]> = {
   ],
 
   TALLY: [
+    sub("1", "COMPUTER FUNDAMENTAL",    "60", "40"),
+    sub("2", "RULE OF ACCOUNTING",      "60", "40"),
+    sub("3", "TALLY ERP 9.0 WITH GST",  "60", "40"),
+  ],
+
+  "TALLY PRIME": [
+    sub("1", "COMPUTER FUNDAMENTAL",    "60", "40"),
+    sub("2", "RULE OF ACCOUNTING",      "60", "40"),
+    sub("3", "TALLY PRIME WITH GST",    "60", "40"),
+  ],
+
+  "TALLY PRIME WITH GST": [
+    sub("1", "COMPUTER FUNDAMENTAL",    "60", "40"),
+    sub("2", "RULE OF ACCOUNTING",      "60", "40"),
+    sub("3", "TALLY PRIME WITH GST",    "60", "40"),
+  ],
+
+  "TALLY ERP": [
     sub("1", "COMPUTER FUNDAMENTAL",    "60", "40"),
     sub("2", "RULE OF ACCOUNTING",      "60", "40"),
     sub("3", "TALLY ERP 9.0 WITH GST",  "60", "40"),
