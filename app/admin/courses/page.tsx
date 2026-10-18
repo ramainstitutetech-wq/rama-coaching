@@ -434,10 +434,16 @@ export default function CoursesAdminPage() {
                 }
               >
                 <option value="">Select Category</option>
-                <option value="Computer Courses">Computer Courses</option>
-                <option value="Academic">Academic</option>
-                <option value="Library">Library</option>
-                <option value="Defense">Defense</option>
+                <option value="O-Level">O-Level</option>
+                <option value="CCC">CCC</option>
+                <option value="CCC+">CCC+</option>
+                <option value="ADCA">ADCA</option>
+                <option value="DCA">DCA</option>
+                <option value="Tally">Tally</option>
+                <option value="Digital Marketing">Digital Marketing</option>
+                <option value="RSCIT">RSCIT</option>
+                <option value="General">General</option>
+                <option value="Other">Other</option>
               </SelectField>
             </Field>
             <Field label="Status">

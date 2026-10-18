@@ -153,7 +153,18 @@ function recordToCertData(rec: CertificateRecord, studentsList: StudentType[] = 
   const student = studentsList.find((s) => s.rollNumber === rec.rollNumber);
   if (student) return buildCertData(student, rec.type, rec.certificateNumber);
   const base: CertificateData = { ...SAMPLE_CERTIFICATE, subjects: DEFAULT_SUBJECTS.map((s) => ({ ...s })) };
-  return { ...base, documentType: rec.type, certificateNumber: rec.certificateNumber, studentName: rec.studentName, rollNo: rec.rollNumber, courseName: rec.course.toUpperCase(), slNo: rec.certificateNumber.slice(-3), trainingCenter: "Rama Coaching Center, Main Branch" };
+  return { 
+    ...base, 
+    documentType: rec.type, 
+    certificateNumber: rec.certificateNumber, 
+    studentName: rec.studentName, 
+    fatherName: rec.fatherName || "",
+    motherName: rec.motherName || "",
+    rollNo: rec.rollNumber, 
+    courseName: rec.course.toUpperCase(), 
+    slNo: rec.certificateNumber.slice(-3), 
+    trainingCenter: "Rama Coaching Center, Main Branch" 
+  };
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

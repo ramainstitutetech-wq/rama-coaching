@@ -44,6 +44,8 @@ export async function GET(req: Request) {
       issueDate: c["issueDate"] ? new Date(c["issueDate"] as string).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "",
       status: c["status"],
       isSentToStudent: !!c["isSentToStudent"],
+      fatherName: c["fatherName"] || "",
+      motherName: c["motherName"] || "",
       createdAt: c["createdAt"],
     }));
 

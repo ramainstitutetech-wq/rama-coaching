@@ -30,6 +30,8 @@ export interface CertificateRecord {
   issueDate: string;
   status: CertificateStatus;
   isSentToStudent?: boolean;
+  fatherName?: string;
+  motherName?: string;
 }
 
 export type DurationUnit = "minute" | "hour" | "day" | "week" | "month" | "year";
