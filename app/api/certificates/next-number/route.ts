@@ -5,18 +5,19 @@ import Certificate from "@/models/Certificate";
 
 /**
  * GET /api/certificates/next-number
- * Scans ALL certificate records (both excellence and marksheet) for the highest
- * trailing number in certificateNumber, then returns max + 1.
- * This is the only correct way to generate a collision-free number because both
- * document types share the same unique index on certificateNumber.
+ * Scans ALL certificate records (excellence + marksheet, including soft-deleted
+ * ones) for the highest trailing number in certificateNumber, then returns max + 1.
+ * Soft-deleted records MUST be included: certificateNumber has a unique index, so a
+ * deleted document still occupies its number — skipping it would return a
+ * permanently colliding number that can never be saved.
  */
 export async function GET() {
   try {
     await connectDB();
 
-    // Pull only the certificateNumber field — no limit, no type filter
+    // Pull only the certificateNumber field — no limit, no filter (deletedAt included)
     const all = await Certificate.find(
-      { deletedAt: { $exists: false } },
+      {},
       { certificateNumber: 1, _id: 0 }
     ).lean();
 

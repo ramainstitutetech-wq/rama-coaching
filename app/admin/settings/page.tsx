@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CheckCircle2, Upload, Info, PenTool } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { CheckCircle2, Upload, Info, PenTool, XCircle, Loader2 } from "lucide-react";
 import { PageHeader, Card } from "@/components/ui/PageHeader";
 import { Tabs } from "@/components/ui/Tabs";
 import { Field, TextInput, TextArea } from "@/components/ui/Field";
@@ -23,12 +23,65 @@ const URL_FIELDS: { key: keyof InstituteSettings; label: string }[] = [
   { key: "linkedin", label: "LinkedIn URL" },
 ];
 
+// ─── Signature / stamp assets ─────────────────────────────────────────────────
+type AssetKey = "secretarySignatureUrl" | "controllerSignatureUrl" | "stampUrl";
+
+// Local files are used ONLY when no custom image has been uploaded from Settings.
+const ASSET_FALLBACK: Record<AssetKey, string> = {
+  secretarySignatureUrl: "/signature.png",
+  controllerSignatureUrl: "/signature.png",
+  stampUrl: "/stamp.png",
+};
+
+const ASSET_CARDS: { key: AssetKey; label: string; usedOn: string }[] = [
+  { key: "secretarySignatureUrl", label: "Secretary Signature", usedOn: "Marksheet · Certificate · Hall Ticket" },
+  { key: "controllerSignatureUrl", label: "Controller Signature", usedOn: "Certificate · Hall Ticket" },
+  { key: "stampUrl", label: "Stamp", usedOn: "Certificate · Marksheet · Hall Ticket" },
+];
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
+type ToastType = "success" | "error";
+interface Toast { id: number; type: ToastType; message: string }
+let _toastId = 0;
+
+function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: number) => void }) {
+  if (!toasts.length) return null;
+  return (
+    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2.5" role="region" aria-label="Notifications">
+      {toasts.map((t) => (
+        <div
+          key={t.id}
+          className={`flex min-w-[280px] max-w-sm items-start gap-3 rounded-xl px-4 py-3 shadow-2xl ring-1 ring-black/5 ${
+            t.type === "success" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
+          }`}
+        >
+          {t.type === "success"
+            ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+            : <XCircle className="mt-0.5 h-4 w-4 shrink-0" />}
+          <span className="flex-1 text-sm font-medium leading-snug">{t.message}</span>
+          <button type="button" onClick={() => onDismiss(t.id)} className="shrink-0 text-base leading-none opacity-70 hover:opacity-100" aria-label="Dismiss">×</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [tab, setTab] = useState("info");
   const [saved, setSaved] = useState(false);
   const [form, setForm] = useState<InstituteSettings>({ instituteName: "", phone: "", email: "", address: "", website: "", facebook: "", instagram: "", youtube: "", linkedin: "", footerText: "", secretarySignatureUrl: "", controllerSignatureUrl: "", stampUrl: "" });
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<Partial<Record<keyof InstituteSettings, string>>>({});
+  const [saving, setSaving] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const pushToast = useCallback((type: ToastType, message: string) => {
+    const id = ++_toastId;
+    setToasts((p) => [...p, { id, type, message }]);
+    setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 5000);
+  }, []);
+
+  const dismissToast = useCallback((id: number) => setToasts((p) => p.filter((t) => t.id !== id)), []);
 
   useEffect(() => { fetch("/api/settings", { cache: "no-store" }).then(r=>r.json()).then(j=>{ if(j.success) { const d=j.data; setForm({ instituteName: d.instituteName||"", phone: d.phone||"", email: d.email||"", address: d.address||"", website: d.website||"", facebook: d.facebook||"", instagram: d.instagram||"", youtube: d.youtube||"", linkedin: d.linkedin||"", footerText: d.footerText||"", secretarySignatureUrl: d.secretarySignatureUrl||"", controllerSignatureUrl: d.controllerSignatureUrl||"", stampUrl: d.stampUrl||"" }); } }).finally(()=>setLoading(false)); }, []);
 
@@ -48,15 +101,33 @@ export default function SettingsPage() {
     if (form.website && !/^https?:\/\/.+/.test(form.website))
       next.website = "Enter a valid URL (https://...).";
     setErrors(next);
-    if (Object.keys(next).length === 0) {
-      try {
-        const res = await fetch("/api/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
-        const j = await res.json();
-        if (j.success) { setSaved(true); setTimeout(() => setSaved(false), 3000); }
-        else { setErrors({ instituteName: j.error || "Failed" }); }
-      } catch { setErrors({ instituteName: "Network error" }); }
+
+    // Validation errors live on the "Institute Information" tab — surface them
+    // instead of silently doing nothing while the admin is on another tab.
+    if (Object.keys(next).length > 0) {
+      setTab("info");
+      pushToast("error", `${Object.values(next)[0]} Please check the highlighted fields.`);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      const j = await res.json();
+      if (j.success) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+        pushToast("success", "Settings saved successfully. Changes are now live on all documents.");
+      } else {
+        pushToast("error", j.error || "Failed to save settings. Please try again.");
+      }
+    } catch {
+      pushToast("error", "Network error. Please check your connection and try again.");
+    } finally {
+      setSaving(false);
     }
   }
+
 
   if (loading) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-2 border-navy border-t-transparent rounded-full animate-spin" /></div>;
   return (
@@ -67,7 +138,7 @@ export default function SettingsPage() {
         actions={
           saved ? (
             <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
-              <CheckCircle2 className="h-4 w-4" /> Settings saved (demo)
+              <CheckCircle2 className="h-4 w-4" /> Settings saved
             </span>
           ) : null
         }
@@ -181,30 +252,48 @@ export default function SettingsPage() {
             <div className="space-y-6">
               <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-start gap-2">
                 <Info className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
-                <p className="text-xs text-amber-700 leading-relaxed">Ye signatures Certificate aur Marksheet pe ayenge. Marksheet me sirf <strong>Secretary</strong> ka signature dikhega, Certificate me <strong>Secretary + Controller</strong> dono. PNG transparent best hai.</p>
+                <p className="text-xs text-amber-700 leading-relaxed">Yahan se upload kiya gaya signature aur stamp har document (Certificate, Marksheet, Hall Ticket) me automatically use hoga. PNG transparent best hai.</p>
               </div>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <PenTool className="h-4 w-4 text-slate-600" />
-                    <label className="text-sm font-medium text-slate-700">Secretary Signature</label>
-                  </div>
-                  <ImageUploadField label="" value={form.secretarySignatureUrl || ""} onChange={(url) => setForm(prev => ({ ...prev, secretarySignatureUrl: url }))} />
-                  <p className="text-xs text-slate-500 mt-1">Marksheet + Certificate dono me dikhega</p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <PenTool className="h-4 w-4 text-slate-600" />
-                    <label className="text-sm font-medium text-slate-700">Controller Of Examination Signature</label>
-                  </div>
-                  <ImageUploadField label="" value={form.controllerSignatureUrl || ""} onChange={(url) => setForm(prev => ({ ...prev, controllerSignatureUrl: url }))} />
-                  <p className="text-xs text-slate-500 mt-1">Sirf Certificate me dikhega (Marksheet me nahi)</p>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700 mb-2 block">Stamp (Optional)</label>
-                <ImageUploadField label="" value={form.stampUrl || ""} onChange={(url) => setForm(prev => ({ ...prev, stampUrl: url }))} />
-                <p className="text-xs text-slate-500 mt-1">Certificate ke beech me watermark ke liye</p>
+                {ASSET_CARDS.map((asset) => {
+                  const current = (form[asset.key] || "").trim();
+                  const inUse = current || ASSET_FALLBACK[asset.key];
+                  return (
+                    <div key={asset.key} className={asset.key === "stampUrl" ? "sm:col-span-2" : ""}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <PenTool className="h-4 w-4 text-slate-600" />
+                        <label className="text-sm font-medium text-slate-700">{asset.label}</label>
+                      </div>
+
+                      {/* Currently in use — shows the live asset on all documents */}
+                      <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                        <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                          <Info className="h-3.5 w-3.5" />
+                          Currently in use · {asset.usedOn}
+                        </p>
+                        <div className="flex h-24 items-center justify-center rounded border border-slate-200 bg-white">
+                          <img
+                            src={inUse}
+                            alt={`${asset.label} in use`}
+                            className="max-h-20 max-w-full object-contain p-1"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = "hidden"; }}
+                          />
+                        </div>
+                        {!current && (
+                          <p className="mt-2 text-xs text-slate-400">Default placeholder — koi custom image upload nahi ki gayi.</p>
+                        )}
+                      </div>
+
+                      <ImageUploadField
+                        label=""
+                        value={current}
+                        uploadToServer
+                        previewFit="contain"
+                        onChange={(url) => update(asset.key, url)}
+                      />
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -213,18 +302,17 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={handleSave}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-deep disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Save Changes
+              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+              {saving ? "Saving…" : "Save Changes"}
             </button>
-            {saved ? (
-              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
-                <CheckCircle2 className="h-4 w-4" /> Settings saved (demo)
-              </span>
-            ) : null}
           </div>
         </div>
       </Card>
+
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

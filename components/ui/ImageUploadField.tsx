@@ -1,13 +1,22 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Upload, Link as LinkIcon, X, Image as ImageIcon } from "lucide-react";
+import { Upload, Link as LinkIcon, X, Image as ImageIcon, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 interface Props {
   value: string;         // current imageUrl (could be data URL or http URL)
   onChange: (url: string) => void;
   label?: string;
+  /**
+   * Upload the file to the server (/api/upload) and keep only the returned URL.
+   * When false (default) the file is inlined as a base64 data URL.
+   */
+  uploadToServer?: boolean;
+  /** Preview fit — use "contain" to keep the whole image visible (signatures, stamps). */
+  previewFit?: "cover" | "contain";
 }
+
+const MAX_SIZE_MB = 5;
 
 // Convert file to base64 data URL
 function toDataURL(file: File): Promise<string> {
@@ -19,25 +28,55 @@ function toDataURL(file: File): Promise<string> {
   });
 }
 
-export function ImageUploadField({ value, onChange, label = "Course Image" }: Props) {
+// Upload file to the server and return its public URL
+async function uploadToStorage(file: File): Promise<string> {
+  const body = new FormData();
+  body.append("file", file);
+  const res = await fetch("/api/upload", { method: "POST", body });
+  const j = await res.json().catch(() => null);
+  if (!res.ok || !j?.success || !j?.data?.url) {
+    throw new Error(j?.error || "Upload failed. Please try again.");
+  }
+  return j.data.url as string;
+}
+
+export function ImageUploadField({
+  value,
+  onChange,
+  label = "Course Image",
+  uploadToServer = false,
+  previewFit = "cover",
+}: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<"upload" | "url">(
-    value && !value.startsWith("data:") ? "url" : "upload"
+    !uploadToServer && value && !value.startsWith("data:") ? "url" : "upload"
   );
   const [urlInput, setUrlInput] = useState(
     value && !value.startsWith("data:") ? value : ""
   );
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
 
   async function handleFile(file: File) {
-    if (!file.type.startsWith("image/")) { alert("Please select an image file."); return; }
-    if (file.size > 5 * 1024 * 1024) { alert("Image must be under 5 MB."); return; }
+    setStatus(null);
+    if (!file.type.startsWith("image/")) {
+      setStatus({ ok: false, message: "Please select an image file (PNG, JPG, WEBP)." });
+      return;
+    }
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      setStatus({ ok: false, message: `Image must be under ${MAX_SIZE_MB} MB.` });
+      return;
+    }
     setUploading(true);
     try {
-      const dataUrl = await toDataURL(file);
-      onChange(dataUrl);
-    } catch { alert("Failed to read image."); }
+      const url = uploadToServer ? await uploadToStorage(file) : await toDataURL(file);
+      onChange(url);
+      setUrlInput(url.startsWith("data:") ? "" : url);
+      setStatus({ ok: true, message: "Uploaded successfully." });
+    } catch (e) {
+      setStatus({ ok: false, message: e instanceof Error ? e.message : "Upload failed. Please try again." });
+    }
     setUploading(false);
   }
 
@@ -49,12 +88,16 @@ export function ImageUploadField({ value, onChange, label = "Course Image" }: Pr
   }
 
   function applyUrl() {
-    if (urlInput.trim()) onChange(urlInput.trim());
+    if (urlInput.trim()) {
+      onChange(urlInput.trim());
+      setStatus({ ok: true, message: "Image URL added." });
+    }
   }
 
   function clear() {
     onChange("");
     setUrlInput("");
+    setStatus(null);
     if (fileRef.current) fileRef.current.value = "";
   }
 
@@ -91,14 +134,14 @@ export function ImageUploadField({ value, onChange, label = "Course Image" }: Pr
             onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
           {uploading ? (
             <div className="flex items-center gap-2 text-sm text-slate-500">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-navy" />
-              Processing…
+              <Loader2 className="h-4 w-4 animate-spin text-navy" />
+              Uploading…
             </div>
           ) : (
             <>
               <Upload className="h-6 w-6 text-slate-400" />
               <p className="text-sm text-slate-600">Click or drag image here</p>
-              <p className="text-xs text-slate-400">PNG, JPG, WEBP — max 5 MB</p>
+              <p className="text-xs text-slate-400">PNG, JPG, WEBP — max {MAX_SIZE_MB} MB</p>
             </>
           )}
         </div>
@@ -122,10 +165,18 @@ export function ImageUploadField({ value, onChange, label = "Course Image" }: Pr
         </div>
       )}
 
+      {/* Upload status */}
+      {status ? (
+        <p className={`flex items-start gap-1.5 text-xs font-medium ${status.ok ? "text-emerald-600" : "text-red-600"}`}>
+          {status.ok ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
+          {status.message}
+        </p>
+      ) : null}
+
       {/* Preview */}
       {hasImage && (
         <div className="relative rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
-          <img src={value} alt="Preview" className="w-full h-40 object-cover"
+          <img src={value} alt="Preview" className={`w-full h-40 ${previewFit === "contain" ? "object-contain p-2" : "object-cover"}`}
             onError={e => { (e.currentTarget as HTMLImageElement).src = ""; }} />
           <button type="button" onClick={clear}
             className="absolute top-2 right-2 rounded-full bg-black/50 p-1.5 text-white hover:bg-black/70 transition-colors"

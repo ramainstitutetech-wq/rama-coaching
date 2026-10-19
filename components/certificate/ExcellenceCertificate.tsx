@@ -8,13 +8,16 @@ const WIDTH = 794;
 const HEIGHT = 1123;
 
 export function ExcellenceCertificate({ data }: { data: CertificateData }) {
-  const [sigUrls, setSigUrls] = useState<{ sec: string; ctrl: string }>({ sec: "/signature.png", ctrl: "/signature.png" });
+  // Signature & stamp come from Settings (admin upload). The local files are only
+  // used as a fallback when nothing has been uploaded yet.
+  const [assets, setAssets] = useState<{ sec: string; ctrl: string; stamp: string }>({ sec: "/signature.png", ctrl: "/signature.png", stamp: "/stamp.png" });
   useEffect(() => {
     fetch("/api/settings", { cache: "no-store" }).then(r=>r.json()).then(j=>{
       if(j.success && j.data){
-        setSigUrls({
+        setAssets({
           sec: j.data.secretarySignatureUrl || "/signature.png",
           ctrl: j.data.controllerSignatureUrl || "/signature.png",
+          stamp: j.data.stampUrl || "/stamp.png",
         });
       }
     }).catch(()=>{});
@@ -147,15 +150,15 @@ export function ExcellenceCertificate({ data }: { data: CertificateData }) {
                 <div>Place : {data.place || "—"}</div>
               </div>
               <div className="doc-footer-secretary" style={{ textAlign: "center" }}>
-                <img src={sigUrls.sec} alt="Secretary Signature" style={{ width: 105, height: 38, objectFit: "contain", marginBottom: 1, display: "block", marginLeft: "auto", marginRight: "auto" }} onError={(e)=>{(e.currentTarget as HTMLImageElement).src="/signature.png";}} />
+                <img src={assets.sec} alt="Secretary Signature" style={{ width: 105, height: 38, objectFit: "contain", marginBottom: 1, display: "block", marginLeft: "auto", marginRight: "auto" }} onError={(e)=>{(e.currentTarget as HTMLImageElement).src="/signature.png";}} />
                 <span style={{ borderTop: "1px solid #000", paddingTop: 2, display: "inline-block", minWidth: 85, fontSize: 11 }}>Secretary</span>
               </div>
               <div className="doc-footer-controller" style={{ textAlign: "center" }}>
-                <img src={sigUrls.ctrl} alt="Controller Signature" style={{ width: 105, height: 38, objectFit: "contain", marginBottom: 1, display: "block", marginLeft: "auto", marginRight: "auto" }} onError={(e)=>{(e.currentTarget as HTMLImageElement).src="/signature.png";}} />
+                <img src={assets.ctrl} alt="Controller Signature" style={{ width: 105, height: 38, objectFit: "contain", marginBottom: 1, display: "block", marginLeft: "auto", marginRight: "auto" }} onError={(e)=>{(e.currentTarget as HTMLImageElement).src="/signature.png";}} />
                 <span style={{ borderTop: "1px solid #000", paddingTop: 2, display: "inline-block", minWidth: 135, fontSize: 11 }}>Controller Of Examination</span>
               </div>
               {/* Stamp — center watermark, closer to signature area */}
-              <img src="/stamp.png" alt="Stamp" style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: 140, height: 140, objectFit: "contain", pointerEvents: "none", opacity: 0.35 }} />
+              <img src={assets.stamp} alt="Stamp" style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: 140, height: 140, objectFit: "contain", pointerEvents: "none", opacity: 0.35 }} onError={(e)=>{(e.currentTarget as HTMLImageElement).src="/stamp.png";}} />
             </div>
           </div>
         </div>

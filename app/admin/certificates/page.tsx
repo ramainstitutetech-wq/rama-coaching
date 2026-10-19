@@ -24,7 +24,7 @@ import type { Student as StudentType } from "@/data/types";
 import type { Student } from "@/data/types";
 import type { CertificateType } from "@/data/types";
 import type { CertificateData } from "@/types/certificate";
-import { SAMPLE_CERTIFICATE, DEFAULT_SUBJECTS } from "@/lib/defaults";
+import { SAMPLE_CERTIFICATE, DEFAULT_SUBJECTS, buildEnrollmentNo } from "@/lib/defaults";
 import { CertificateForm } from "@/components/forms/CertificateForm";
 import { CertificatePreview } from "@/components/certificate/CertificatePreview";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -124,7 +124,9 @@ function buildCertData(student: Student | undefined, type: CertificateType, cert
     fatherName: student.parentName || "",
     motherName: student.motherName || "",
     rollNo: student.rollNumber,
-    enrollmentNo: student.id.toUpperCase(),
+    // Enrollment number must be identical to the marksheet — course-code based
+    // (e.g. ADCA-2026-001). Previously this used the DB ObjectId, which was wrong.
+    enrollmentNo: buildEnrollmentNo(student.course, student.rollNumber),
     courseName: student.course.toUpperCase(),
     courseCode: student.course.replace(/\s+/g, "").toUpperCase() + "-2026",
     slNo: student.rollNumber.replace(/\D/g, "").slice(-3).padStart(3, "0") || "001",
@@ -206,6 +208,18 @@ export default function CertificatesPage() {
     }
   }, []);
 
+  // Fetch the authoritative next number and return it (used to avoid stale state).
+  const fetchFreshNumber = useCallback(async (): Promise<string> => {
+    try {
+      const res = await fetch("/api/certificates/next-number", { cache: "no-store" });
+      const j = await res.json();
+      if (j.success && j.next) { setNextNumber(j.next); return j.next as string; }
+    } catch {
+      // fall through to empty string
+    }
+    return "";
+  }, []);
+
   // ── Data fetching ──────────────────────────────────────────────────────────
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -239,9 +253,10 @@ export default function CertificatesPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  function loadGenerator() {
+  async function loadGenerator() {
     const student = students.find((s) => s.id === selectedStudentId);
-    const num = nextNumber;
+    // Always resolve a fresh number so the form never opens with an empty/stale one.
+    const num = (await fetchFreshNumber()) || nextNumber;
     setIssuedNumber(num);
     setIssueInitial(buildCertData(student, selectedType, num));
     setGenerated(null);
@@ -253,76 +268,92 @@ export default function CertificatesPage() {
   // certNumberOverride: pass explicitly to avoid reading stale state (e.g. after a bump)
   async function saveRecord(sendToStudent: boolean, certNumberOverride?: string) {
     if (!generated) return;
-    const certNum = certNumberOverride ?? issuedNumber;
     setSaveState(sendToStudent ? "send-saving" : "saving");
     setSaveError(null);
     setLastSendIntent(sendToStudent);
 
-    try {
-      const payload: Record<string, unknown> = {
-        certificateNumber: certNum,
-        studentName:    generated.studentName,
-        rollNo:         generated.rollNo,
-        rollNumber:     generated.rollNo,
-        courseName:     generated.courseName,
-        courseCode:     generated.courseCode,
-        documentType:   "excellence",
-        type:           "excellence",
-        fatherName:     generated.fatherName,
-        motherName:     generated.motherName,
-        completionDate: generated.completionDate,
-        trainingCenter: generated.trainingCenter,
-        centerCode:     generated.centerCode,
-        performance:    generated.performance,
-        courseDuration: generated.courseDuration,
-        dated:          generated.dated,
-        place:          generated.place,
-        subjects:       generated.subjects,
-        slNo:           generated.slNo,
-        enrollmentNo:   generated.enrollmentNo,
-        status:         "issued",
-        isSentToStudent: sendToStudent,
-      };
-      const st = students.find((s) => s.rollNumber === generated.rollNo);
-      if (st) payload.studentId = st.id;
-
-      const res = await fetch("/api/certificates", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const j = await res.json();
-
-      if (!j.success) {
-        const isDuplicate = (j.error as string)?.toLowerCase().includes("already exists") || (j.error as string)?.includes("E11000");
-        if (isDuplicate) {
-          // Fetch the authoritative next number from the API (covers all types)
-          try {
-            const nRes = await fetch("/api/certificates/next-number", { cache: "no-store" });
-            const nJ = await nRes.json();
-            const bumped = nJ.success ? nJ.next : `${certNum}-retry`;
-            setNextNumber(bumped);
-            setIssuedNumber(bumped);
-            setSaveError(`Certificate number "${certNum}" already exists. Updated to "${bumped}" — click Save again.`);
-          } catch {
-            setSaveError(`Certificate number "${certNum}" already exists. Please reload and try again.`);
-          }
-        } else {
-          setSaveError(j.error || "Failed to save certificate. Please try again.");
-        }
+    // Resolve a valid number up-front — never POST an empty certificate number.
+    let certNum = (certNumberOverride ?? issuedNumber ?? "").trim();
+    if (!certNum) {
+      certNum = await fetchFreshNumber();
+      if (!certNum) {
+        setSaveError("Could not generate a certificate number. Please try again.");
+        setSaveState("idle");
         return;
       }
+      setIssuedNumber(certNum);
+    }
 
-      pushToast("success", sendToStudent
-        ? `Certificate ${certNum} saved and sent to student's portal.`
-        : `Certificate ${certNum} saved to admin records.`
-      );
-      await fetchAll();
-      await fetchNextNumber();
-      setIssueOpen(false);
-      setGenerated(null);
-      setIssueInitial(null);
-      setSaveError(null);
+    try {
+      const st = students.find((s) => s.rollNumber === generated.rollNo);
+
+      const buildPayload = (number: string): Record<string, unknown> => {
+        const payload: Record<string, unknown> = {
+          certificateNumber: number,
+          studentName:    generated.studentName,
+          rollNo:         generated.rollNo,
+          rollNumber:     generated.rollNo,
+          courseName:     generated.courseName,
+          courseCode:     generated.courseCode,
+          documentType:   "excellence",
+          type:           "excellence",
+          fatherName:     generated.fatherName,
+          motherName:     generated.motherName,
+          completionDate: generated.completionDate,
+          trainingCenter: generated.trainingCenter,
+          centerCode:     generated.centerCode,
+          performance:    generated.performance,
+          courseDuration: generated.courseDuration,
+          dated:          generated.dated,
+          place:          generated.place,
+          subjects:       generated.subjects,
+          slNo:           generated.slNo,
+          enrollmentNo:   generated.enrollmentNo,
+          status:         "issued",
+          isSentToStudent: sendToStudent,
+        };
+        if (st) payload.studentId = st.id;
+        return payload;
+      };
+
+      // Retry a couple of times if the number collides (e.g. another record was
+      // created meanwhile) instead of making the admin click Save again.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const res = await fetch("/api/certificates", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(buildPayload(certNum)),
+        });
+        const j = await res.json();
+
+        if (j.success) {
+          pushToast("success", sendToStudent
+            ? `Certificate ${certNum} saved and sent to student's portal.`
+            : `Certificate ${certNum} saved to admin records.`
+          );
+          await fetchAll();
+          await fetchNextNumber();
+          setIssueOpen(false);
+          setGenerated(null);
+          setIssueInitial(null);
+          setSaveError(null);
+          return;
+        }
+
+        const isDuplicate = (j.error as string)?.toLowerCase().includes("already exists") || (j.error as string)?.includes("E11000");
+        if (isDuplicate) {
+          const bumped = await fetchFreshNumber();
+          if (bumped && bumped !== certNum) {
+            certNum = bumped;
+            setIssuedNumber(bumped);
+            setGenerated((g) => (g ? { ...g, certificateNumber: bumped } : g));
+            continue; // retry with the new number
+          }
+        }
+        setSaveError(j.error || "Failed to save certificate. Please try again.");
+        return;
+      }
+      setSaveError("Could not allocate a unique certificate number. Please try again.");
     } catch {
       setSaveError("Network error. Please check your connection and try again.");
     } finally {

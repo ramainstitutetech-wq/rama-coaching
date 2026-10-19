@@ -29,15 +29,18 @@ function truncate(v: string, max: number) {
 }
 
 export function HallTicket({ data }: { data: HallTicketData }) {
-  const [sigUrls, setSigUrls] = useState<{ sec: string; ctrl: string }>({ sec: "/signature.png", ctrl: "/signature.png" });
+  // Signature & stamp come from Settings (admin upload). The local files are only
+  // used as a fallback when nothing has been uploaded yet.
+  const [assets, setAssets] = useState<{ sec: string; ctrl: string; stamp: string }>({ sec: "/signature.png", ctrl: "/signature.png", stamp: "/stamp.png" });
   const [qrDataUrl, setQrDataUrl] = useState("");
 
   useEffect(() => {
     fetch("/api/settings", { cache: "no-store" }).then(r => r.json()).then(j => {
       if (j.success && j.data) {
-        setSigUrls({
+        setAssets({
           sec: j.data.secretarySignatureUrl || "/signature.png",
           ctrl: j.data.controllerSignatureUrl || "/signature.png",
+          stamp: j.data.stampUrl || "/stamp.png",
         });
       }
     }).catch(() => {});
@@ -165,14 +168,14 @@ export function HallTicket({ data }: { data: HallTicketData }) {
 
       {/* Footer */}
       <div style={S.footer}>
-        <img src="/stamp.png" alt="Stamp" style={S.stampWatermark} />
+        <img src={assets.stamp} alt="Stamp" style={S.stampWatermark} onError={(e) => ((e.currentTarget as HTMLImageElement).src = "/stamp.png")} />
         <div style={S.sigBlock}>
-          <img src={sigUrls.ctrl} alt="Controller" style={S.sigImage} onError={(e) => ((e.currentTarget as HTMLImageElement).src = "/signature.png")} />
+          <img src={assets.ctrl} alt="Controller" style={S.sigImage} onError={(e) => ((e.currentTarget as HTMLImageElement).src = "/signature.png")} />
           <div style={S.sigBlockLine} />
           <span style={S.sigBlockLabel}>Controller of Examination</span>
         </div>
         <div style={S.sigBlock}>
-          <img src={sigUrls.sec} alt="Secretary" style={S.sigImage} onError={(e) => ((e.currentTarget as HTMLImageElement).src = "/signature.png")} />
+          <img src={assets.sec} alt="Secretary" style={S.sigImage} onError={(e) => ((e.currentTarget as HTMLImageElement).src = "/signature.png")} />
           <div style={S.sigBlockLine} />
           <span style={S.sigBlockLabel}>Secretary</span>
         </div>
