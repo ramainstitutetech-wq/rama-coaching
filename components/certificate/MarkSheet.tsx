@@ -241,7 +241,12 @@ export function Marksheet({ data }: { data: CertificateData }) {
                 <span style={{ borderTop: "1px solid #000", paddingTop: 2, display: "inline-block", minWidth: 85, fontSize: 11 }}>Secretary</span>
               </div>
               <div className="doc-footer-controller" style={{ textAlign: "center" }}>
-                <span style={{ display: "inline-block", width: 105, height: 38, marginBottom: 1 }} />
+                <img
+                  src={assets.ctrl}
+                  alt="Controller Signature"
+                  style={{ width: 105, height: 38, objectFit: "contain", marginBottom: 1, display: "block", marginLeft: "auto", marginRight: "auto" }}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/signature.png"; }}
+                />
                 <span style={{ borderTop: "1px solid #000", paddingTop: 2, display: "inline-block", minWidth: 135, fontSize: 11 }}>Controller Of Examination</span>
               </div>
               {/* Stamp — center watermark, closer to signature area */}
