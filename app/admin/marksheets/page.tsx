@@ -250,11 +250,44 @@ export default function MarksheetsPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  function loadGenerator() {
+  async function loadGenerator() {
     const student = students.find((s) => s.id === selectedStudentId);
+    if (!student) return;
+
     const num = nextNumber;
     setIssuedNumber(num);
-    setIssueInitial(buildCertData(student, selectedType, num));
+    
+    // Initial data from student template
+    const initial = buildCertData(student, selectedType, num);
+
+    // Smart Auto-fill: Try to fetch last marksheet for this student
+    try {
+      const res = await fetch(`/api/certificates?type=marksheet&rollNo=${student.rollNumber}&limit=1`, { cache: "no-store" });
+      const j = await res.json();
+      if (j.success && j.data.length > 0) {
+        const last = j.data[0];
+        // If last record found, pre-fill the subjects (marks)
+        if (last.subjects && last.subjects.length > 0) {
+          initial.subjects = last.subjects.map((s: any) => ({
+            paper: String(s.paper || ""),
+            subject: String(s.subject || ""),
+            theoryMax: String(s.theoryMax || "60"),
+            theoryMin: String(s.theoryMin || ""),
+            practicalMax: String(s.practicalMax || "40"),
+            practicalMin: String(s.practicalMin || ""),
+            total: String(s.total || ""),
+            grade: String(s.grade || ""),
+          }));
+          // Also pre-calculate overall performance grade from these marks
+          initial.performance = calcOverallGrade(initial.subjects);
+          pushToast("info", "Purane result se marks auto-fill kar diye gaye hain. Aap inhe edit kar sakte hain.");
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch last marksheet", err);
+    }
+
+    setIssueInitial(initial);
     setGenerated(null);
     setSaveError(null);
     setGeneratorKey((k) => k + 1);

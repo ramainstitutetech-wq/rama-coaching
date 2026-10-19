@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { CertificateData } from "@/types/certificate";
 import { LogoEmblem } from "./DocumentParts";
 import { WATERMARK_TEXT } from "./CertificateShell";
+import { calcOverallGrade } from "@/lib/defaults";
 
 const WIDTH = 794;
 const HEIGHT = 1123;
@@ -103,8 +104,18 @@ export function Marksheet({ data }: { data: CertificateData }) {
                   </div>
                 </div>
 
-                {/* Student photo — 10% smaller, shifted up */}
-                <div className="doc-photo" style={{ width: 70, height: 66, top: 10 }}>
+                {/* Student photo — Production-level placement matching the reference image */}
+                <div className="doc-photo" style={{ 
+                  width: 95, 
+                  height: 115, 
+                  position: "absolute", 
+                  right: 50, 
+                  top: 210, 
+                  border: "1.2px solid #000", 
+                  padding: 1.5, 
+                  background: "#fff",
+                  zIndex: 10
+                }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={photoSrc}
@@ -183,8 +194,14 @@ export function Marksheet({ data }: { data: CertificateData }) {
                   const practicalMaxTotal = data.subjects.reduce((sum, s) => sum + (Number(s.practicalMax) || 0), 0);
                   const obtainedTotal = data.subjects.reduce((sum, s) => sum + (Number(s.total) || 0), 0);
                   const maxTotal = theoryMaxTotal + practicalMaxTotal;
-                  const percentage = maxTotal > 0 ? Math.round((obtainedTotal / maxTotal) * 100) : 0;
-                  const overallGrade = percentage >= 85 ? "A+" : percentage >= 75 ? "A" : percentage >= 65 ? "B" : percentage >= 55 ? "C" : percentage >= 50 ? "D" : "F";
+                  // Use standardized shared logic from lib/defaults.ts
+                  const overallGrade = calcOverallGrade(data.subjects.map(s => ({
+                    ...s,
+                    theoryMax: String(s.theoryMax),
+                    practicalMax: String(s.practicalMax),
+                    total: String(s.total)
+                  })) as any);
+
                   return (
                     <tr className="doc-total-row">
                       <td className="doc-paper" />

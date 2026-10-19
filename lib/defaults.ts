@@ -183,13 +183,13 @@ export function calcGrade(obtainedStr: string, maxStr: string): string {
   const max      = parseFloat(maxStr);
   if (!maxStr || isNaN(obtained) || isNaN(max) || max === 0) return "";
   const pct = (obtained / max) * 100;
-  if (pct >= 90) return "S";       // Outstanding
-  if (pct >= 80) return "A+";
-  if (pct >= 70) return "A";
-  if (pct >= 60) return "B+";
-  if (pct >= 50) return "B";
-  if (pct >= 40) return "C";
-  if (pct >= 33) return "D";
+  
+  // Standardised grades matching the Marksheet Legend (RCCACE Policy)
+  if (pct >= 85) return "A+";
+  if (pct >= 75) return "A";
+  if (pct >= 65) return "B";
+  if (pct >= 55) return "C";
+  if (pct >= 50) return "D";
   return "F";
 }
 

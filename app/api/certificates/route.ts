@@ -12,6 +12,7 @@ export async function GET(req: Request) {
     const q = searchParams.get("search")?.trim() || "";
     const type = searchParams.get("type") || "";
     const courseFilter = searchParams.get("course") || "";
+    const rollNoFilter = searchParams.get("rollNo") || "";
     const status = searchParams.get("status") || "";
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50", 10)));
@@ -24,6 +25,7 @@ export async function GET(req: Request) {
     }
     if (type) filter["documentType"] = type;
     if (courseFilter) filter["courseName"] = courseFilter;
+    if (rollNoFilter) filter["rollNo"] = rollNoFilter;
     if (status) filter["status"] = status;
 
     const [items, total] = await Promise.all([
@@ -46,6 +48,7 @@ export async function GET(req: Request) {
       isSentToStudent: !!c["isSentToStudent"],
       fatherName: c["fatherName"] || "",
       motherName: c["motherName"] || "",
+      subjects: c["subjects"] || [],
       createdAt: c["createdAt"],
     }));
 
