@@ -5,6 +5,7 @@ import { verifyToken } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Student from "@/models/Student";
 import Course from "@/models/Course";
+import { normalizeCategory } from "@/lib/courseCategories";
 
 export async function GET() {
   try {
@@ -16,12 +17,14 @@ export async function GET() {
     const student = await Student.findOne({ _id: (payload as any).id, deletedAt: { $exists: false } }).lean() as any;
     if (!student) return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
 
-    // Resolve the course's category so mock tests & e-notes can match correctly
+    // Resolve the course's category and normalize it to a canonical value.
+    // normalizeCategory handles: old "Diploma"→"ADCA", "Certification"→"CCC",
+    // "Foundation"→"Basic Computer", etc. so existing DB records work seamlessly.
     let courseCategory = "";
     try {
       if (student.courseId) {
         const course = await Course.findById(student.courseId).select("category").lean() as any;
-        if (course?.category) courseCategory = course.category;
+        if (course?.category) courseCategory = normalizeCategory(course.category);
       }
     } catch {}
 

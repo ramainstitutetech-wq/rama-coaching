@@ -17,14 +17,16 @@ import { EmptyState, Spinner } from "@/components/ui/EmptyState";
 import { mockTestStatusVariant } from "@/lib/status";
 import type { MockTest, MockTestQuestion } from "@/data/types";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type TestDraft = Omit<MockTest, "id" | "questions">;
 type QuestionDraft = Omit<MockTestQuestion, "id">;
 
+// Imported via shared lib at runtime; mirrored here for UI dropdown only.
+// To add a new category, update lib/courseCategories.ts — this list auto-syncs.
 const COURSE_CATEGORIES = [
-  "General", "O-Level", "CCC", "CCC+", "ADCA", "DCA",
-  "Tally", "Digital Marketing", "RSCIT", "Other",
+  "General", "Basic Computer", "CCC", "CCC+", "ADCA", "DCA",
+  "O-Level", "Tally", "Digital Marketing", "RSCIT", "Academic", "Other",
 ] as const;
 
 const emptyTestDraft: TestDraft = {
@@ -50,11 +52,11 @@ const emptyQDraft: QuestionDraft = {
   marks: 1,
 };
 
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type Tab = "tests" | "questions";
 
-// ─── Translation helper ───────────────────────────────────────────────────────
+// â”€â”€â”€ Translation helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function translateTexts(texts: string[]): Promise<string[]> {
   const res = await fetch("/api/translate", {
     method: "POST",
@@ -67,7 +69,7 @@ async function translateTexts(texts: string[]): Promise<string[]> {
   return (j.results as Array<{ translated: string }>).map((r) => r.translated);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 export default function MockTestsAdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("tests");
   const [selectedTest, setSelectedTest] = useState<MockTest | null>(null);
@@ -153,9 +155,9 @@ export default function MockTestsAdminPage() {
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 1 — Tests Tab
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// SECTION 1 â€” Tests Tab
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 function TestsTab({ onManageQuestions }: { onManageQuestions: (t: MockTest) => void }) {
   const [items, setItems] = useState<MockTest[]>([]);
@@ -250,7 +252,7 @@ function TestsTab({ onManageQuestions }: { onManageQuestions: (t: MockTest) => v
   }
 
   function handlePassingMarksChange(val: number) {
-    // Clamp between 0 and totalMarks — never allow an impossible value
+    // Clamp between 0 and totalMarks â€” never allow an impossible value
     const clamped = Math.max(0, Math.min(val, draft.totalMarks));
     setDraft({ ...draft, passingMarks: clamped });
     setErrors((prev) => { const n = { ...prev }; delete n.passingMarks; return n; });
@@ -487,7 +489,7 @@ function TestsTab({ onManageQuestions }: { onManageQuestions: (t: MockTest) => v
                 value={(draft as any).isFree !== false ? "free" : "paid"}
                 onChange={(e) => setDraft({ ...draft, isFree: e.target.value === "free" } as any)}
               >
-                <option value="free">Free — Public trial</option>
+                <option value="free">Free â€” Public trial</option>
                 <option value="paid">Enrolled students only</option>
               </SelectField>
             </Field>
@@ -552,7 +554,7 @@ function TestsTab({ onManageQuestions }: { onManageQuestions: (t: MockTest) => v
   );
 }
 
-// ─── Test Card ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Test Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function TestCard({
   test,
@@ -639,9 +641,9 @@ function TestCard({
   );
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 2 — Questions Tab
-// ═══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// SECTION 2 â€” Questions Tab
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 function QuestionsTab({
   test,
@@ -755,7 +757,7 @@ function QuestionsTab({
     return Object.keys(e).length === 0;
   }
 
-  // ── Auto-translate English → Hindi ──────────────────────────────────────────
+  // â”€â”€ Auto-translate English â†’ Hindi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async function handleAutoTranslate() {
     if (!draft.questionText.trim()) {
       setTranslateError("Please enter the English question first.");
@@ -789,7 +791,7 @@ function QuestionsTab({
   async function saveQuestion() {
     if (!validateQ()) return;
 
-    // Auto-translate if Hindi is empty — teacher doesn't need to do anything manually
+    // Auto-translate if Hindi is empty â€” teacher doesn't need to do anything manually
     let qHi   = draft.questionTextHi?.trim() || "";
     let optsHi = (draft.optionsHi || []).map((o) => o?.trim() || "");
     const hindiMissing = !qHi || optsHi.some((o) => !o);
@@ -813,7 +815,7 @@ function QuestionsTab({
           optionsHi: optsHi,
         }));
       } catch {
-        // Translation failed — continue with English only, don't block save
+        // Translation failed â€” continue with English only, don't block save
         qHi    = "";
         optsHi = ["", "", "", ""];
       } finally {
@@ -852,8 +854,8 @@ function QuestionsTab({
   return (
     <>
       <PageHeader
-        title={`Questions — ${test.title}`}
-        subtitle={`${questions.length} question${questions.length !== 1 ? "s" : ""} · ${totalCalculatedMarks} total marks`}
+        title={`Questions â€” ${test.title}`}
+        subtitle={`${questions.length} question${questions.length !== 1 ? "s" : ""} Â· ${totalCalculatedMarks} total marks`}
         actions={
           <div className="flex items-center gap-3">
             {saveStatus === "saved" && (
@@ -957,7 +959,7 @@ function QuestionsTab({
               className="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-deep disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
             >
               {translating ? (
-                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Translating & Saving…</>
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Translating & Savingâ€¦</>
               ) : (
                 editingIdx !== null ? "Update Question" : "Add Question"
               )}
@@ -966,7 +968,7 @@ function QuestionsTab({
         }
       >
         <div className="space-y-5">
-          {/* Error summary — shown at top so always visible */}
+          {/* Error summary â€” shown at top so always visible */}
           {Object.keys(errors).length > 0 && (
             <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
               <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
@@ -980,7 +982,7 @@ function QuestionsTab({
               </div>
             </div>
           )}
-          {/* Question text English — only required field */}
+          {/* Question text English â€” only required field */}
           <Field label="Question (English)" required error={errors.questionText}>
             <TextArea
               rows={3}
@@ -994,7 +996,7 @@ function QuestionsTab({
           <div className="flex items-start gap-3 rounded-lg border border-violet-200 bg-violet-50 px-4 py-3">
             <Languages className="h-4 w-4 text-violet-600 shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-violet-800">Hindi Translation — Automatic</p>
+              <p className="text-sm font-medium text-violet-800">Hindi Translation â€” Automatic</p>
               <p className="text-xs text-violet-600 mt-0.5">
                 Hindi translation is generated <strong>automatically</strong> when you click Add/Update. You don't need to type Hindi manually.
                 Technical terms like CPU, HTML, RAM etc. are preserved as-is.
@@ -1007,12 +1009,12 @@ function QuestionsTab({
               )}
               {translating && (
                 <p className="mt-2 text-xs text-violet-600 flex items-center gap-1.5 animate-pulse">
-                  <Loader2 className="h-3 w-3 animate-spin" /> Generating Hindi translation…
+                  <Loader2 className="h-3 w-3 animate-spin" /> Generating Hindi translationâ€¦
                 </p>
               )}
               {translateError && (
                 <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
-                  ⚠ {translateError} — English-only question will be saved.
+                  âš  {translateError} â€” English-only question will be saved.
                 </p>
               )}
             </div>
@@ -1033,11 +1035,11 @@ function QuestionsTab({
             </div>
           </div>
 
-          {/* Options — English only required */}
+          {/* Options â€” English only required */}
           <div>
             <p className="mb-2 text-sm font-medium text-slate-700">
               Answer Options <span className="text-red-500">*</span>
-              <span className="ml-2 text-xs font-normal text-slate-400">(Select the correct answer — Hindi auto-fills on save)</span>
+              <span className="ml-2 text-xs font-normal text-slate-400">(Select the correct answer â€” Hindi auto-fills on save)</span>
             </p>
             <div className="space-y-2">
               {draft.options.map((opt, i) => (
@@ -1064,7 +1066,7 @@ function QuestionsTab({
                       error={errors[`option_${i}`]}
                     />
                   </div>
-                  {/* Hindi option preview — small, read-only */}
+                  {/* Hindi option preview â€” small, read-only */}
                   {(draft.optionsHi || [])[i]?.trim() && (
                     <span className="text-[11px] text-slate-400 max-w-[100px] truncate hidden sm:block">
                       {(draft.optionsHi || [])[i]}
@@ -1111,7 +1113,7 @@ function QuestionsTab({
   );
 }
 
-// ─── Question Card ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Question Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function QuestionCard({
   question, index, onEdit, onDelete, saving,
 }: {
@@ -1185,7 +1187,7 @@ function QuestionCard({
           </span>
           {hasHindi && (
             <span className="rounded-full bg-violet-100 px-2.5 py-0.5 text-[10px] font-semibold text-violet-600">
-              हिंदी ✓
+              à¤¹à¤¿à¤‚à¤¦à¥€ âœ“
             </span>
           )}
           <div className="flex items-center gap-1">

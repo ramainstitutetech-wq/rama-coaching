@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import MockTest from "@/models/MockTest";
 import { getCache, setCache, invalidateCache } from "@/lib/cache";
+import { normalizeCategory } from "@/lib/courseCategories";
 
 function serializeQuestion(q: any, stripAnswers = false) {
   const base: any = {
@@ -63,7 +64,22 @@ export async function GET(req: Request) {
     }
     if (status && status !== "all") filter.status = status;
     if (publicOnly) filter.status = "active";
-    if (catParam && catParam !== "all") filter.courseCategory = catParam;
+    // -- Category filter (student portal) -------------------------------------
+    // normalizeCategory converts any legacy/raw value ? canonical category.
+    // "General" tests are ALWAYS included so admin can set a test as visible
+    // to every student regardless of their specific course.
+    if (catParam && catParam !== "all") {
+      const canonical = normalizeCategory(catParam);
+      if (canonical === "General") {
+        filter.courseCategory = "General";
+      } else {
+        // Student's category tests + General (universal) tests
+        filter["$or"] = [
+          { courseCategory: canonical },
+          { courseCategory: "General" },
+        ];
+      }
+    }
     if (freeParam === "1") filter.isFree = true;
 
     const [items, total] = await Promise.all([

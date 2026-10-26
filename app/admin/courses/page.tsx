@@ -65,7 +65,7 @@ export default function CoursesAdminPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // ── Lessons (per course) ────────────────────────────────────────────
+  // â”€â”€ Lessons (per course) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [lessonsOpen, setLessonsOpen] = useState(false);
   const [lessonsCourse, setLessonsCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<any[]>([]);
@@ -134,7 +134,7 @@ export default function CoursesAdminPage() {
     const e: Record<string, string> = {};
     if (!draft.name.trim()) e.name = "Name is required";
     if (!draft.description.trim()) e.description = "Description is required";
-    // Professional: Duration via value+unit OR old text — value must be >0
+    // Professional: Duration via value+unit OR old text â€” value must be >0
     const v = (draft as any).durationValue;
     const hasValidValue = v !== null && v !== undefined && String(v).trim() !== "" && !isNaN(Number(v)) && Number(v) > 0;
     if (!hasValidValue && !draft.duration.trim()) e.duration = "Duration is required (enter value >0)";
@@ -169,7 +169,7 @@ export default function CoursesAdminPage() {
     setDeleteId(null);
   }
 
-  // ── Lessons helpers ─────────────────────────────────────────────────
+  // â”€â”€ Lessons helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async function openLessons(c: Course) {
     setLessonsCourse(c);
     setLessonsOpen(true);
@@ -362,7 +362,7 @@ export default function CoursesAdminPage() {
               className="inline-flex items-center gap-2 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-deep disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {saving ? (
-                <><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />Saving…</>
+                <><span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />Savingâ€¦</>
               ) : (
                 editingId ? "Save Changes" : "Create Course"
               )}
@@ -375,7 +375,7 @@ export default function CoursesAdminPage() {
             <TextInput
               value={draft.name}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              placeholder="e.g. ADCA — Advanced Diploma"
+              placeholder="e.g. ADCA â€” Advanced Diploma"
             />
           </Field>
 
@@ -405,7 +405,7 @@ export default function CoursesAdminPage() {
               </SelectField>
             </Field>
             <Field label="Fees" required error={errors.fees}>
-              <TextInput value={draft.fees} onChange={(e) => setDraft({ ...draft, fees: e.target.value })} placeholder="e.g. ₹9,500" />
+              <TextInput value={draft.fees} onChange={(e) => setDraft({ ...draft, fees: e.target.value })} placeholder="e.g. â‚¹9,500" />
             </Field>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -434,15 +434,17 @@ export default function CoursesAdminPage() {
                 }
               >
                 <option value="">Select Category</option>
-                <option value="O-Level">O-Level</option>
-                <option value="CCC">CCC</option>
+                <option value="General">General (All Students)</option>
+                <option value="Basic Computer">Basic Computer Course</option>
+                <option value="CCC">CCC — Course on Computer Concepts</option>
                 <option value="CCC+">CCC+</option>
-                <option value="ADCA">ADCA</option>
-                <option value="DCA">DCA</option>
-                <option value="Tally">Tally</option>
+                <option value="ADCA">ADCA — Advanced Diploma</option>
+                <option value="DCA">DCA — Diploma in Computer Applications</option>
+                <option value="O-Level">O-Level (NIELIT)</option>
+                <option value="Tally">Tally Prime with GST</option>
                 <option value="Digital Marketing">Digital Marketing</option>
                 <option value="RSCIT">RSCIT</option>
-                <option value="General">General</option>
+                <option value="Academic">Academic (Class 1–12)</option>
                 <option value="Other">Other</option>
               </SelectField>
             </Field>
@@ -539,8 +541,8 @@ export default function CoursesAdminPage() {
         ) : null}
       </Modal>
 
-      {/* ── Lessons Manager ─────────────────────────────────────────── */}
-      <Modal open={lessonsOpen} onClose={() => setLessonsOpen(false)} title={lessonsCourse ? `Content — ${lessonsCourse.name}` : "Course Content"} size="xl"
+      {/* â”€â”€ Lessons Manager â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <Modal open={lessonsOpen} onClose={() => setLessonsOpen(false)} title={lessonsCourse ? `Content â€” ${lessonsCourse.name}` : "Course Content"} size="xl"
         footer={<button type="button" onClick={() => setLessonsOpen(false)} className="rounded-lg border border-slate-300 px-4 py-2 text-sm">Close</button>}>
         {lessonsCourse && (
           <div className="space-y-5">
@@ -548,7 +550,7 @@ export default function CoursesAdminPage() {
               <span className="h-8 w-8 rounded-lg bg-[#1F3354] text-white flex items-center justify-center"><Layers className="h-4 w-4" /></span>
               <div>
                 <p className="text-sm font-semibold text-slate-800">{lessonsCourse.name}</p>
-                <p className="text-xs text-slate-500">Add video (YouTube/Drive), PDF, PPT, Text, Image — YouTube/Drive link free, PDF/PPT upload 20MB</p>
+                <p className="text-xs text-slate-500">Add video (YouTube/Drive), PDF, PPT, Text, Image â€” YouTube/Drive link free, PDF/PPT upload 20MB</p>
               </div>
             </div>
 
@@ -557,12 +559,12 @@ export default function CoursesAdminPage() {
               <p className="text-sm font-semibold text-slate-800">{lessonEditingId ? "Edit Lesson" : "Add Lesson"} {lessonEditingId && <button onClick={()=>{setLessonEditingId(null); setLessonDraft({title:"", type:"video_youtube", fileUrl:"", content:"", duration:"", status:"published"});}} className="ml-2 text-xs text-slate-500 underline">Cancel</button>}</p>
               <div className="grid sm:grid-cols-2 gap-3">
                 <Field label="Title" required>
-                  <TextInput value={lessonDraft.title} onChange={e=>setLessonDraft({...lessonDraft, title:e.target.value})} placeholder="e.g. Chapter 1 — Intro" />
+                  <TextInput value={lessonDraft.title} onChange={e=>setLessonDraft({...lessonDraft, title:e.target.value})} placeholder="e.g. Chapter 1 â€” Intro" />
                 </Field>
                 <Field label="Type">
                   <SelectField value={lessonDraft.type} onChange={e=>setLessonDraft({...lessonDraft, type:e.target.value as any})}>
-                    <option value="video_youtube">Video — YouTube link</option>
-                    <option value="video_drive">Video — Google Drive link</option>
+                    <option value="video_youtube">Video â€” YouTube link</option>
+                    <option value="video_drive">Video â€” Google Drive link</option>
                     <option value="pdf">PDF</option>
                     <option value="ppt">PPT / PPTX</option>
                     <option value="text">Text</option>
@@ -574,13 +576,13 @@ export default function CoursesAdminPage() {
               {lessonDraft.type === "video_youtube" && (
                 <Field label="YouTube URL" required>
                   <TextInput value={lessonDraft.fileUrl} onChange={e=>setLessonDraft({...lessonDraft, fileUrl:e.target.value})} placeholder="https://www.youtube.com/watch?v=..." />
-                  <p className="text-[11px] text-slate-400 mt-1">Unlisted link paste karo — free unlimited, embed ho jayega.</p>
+                  <p className="text-[11px] text-slate-400 mt-1">Unlisted link paste karo â€” free unlimited, embed ho jayega.</p>
                 </Field>
               )}
               {lessonDraft.type === "video_drive" && (
                 <Field label="Google Drive Share Link" required>
                   <TextInput value={lessonDraft.fileUrl} onChange={e=>setLessonDraft({...lessonDraft, fileUrl:e.target.value})} placeholder="https://drive.google.com/file/d/.../view" />
-                  <p className="text-[11px] text-slate-400 mt-1">Share → Anyone with link → paste.</p>
+                  <p className="text-[11px] text-slate-400 mt-1">Share â†’ Anyone with link â†’ paste.</p>
                 </Field>
               )}
               {(lessonDraft.type === "pdf" || lessonDraft.type === "ppt" || lessonDraft.type === "image") && (
@@ -609,12 +611,12 @@ export default function CoursesAdminPage() {
                 <Field label="Status"><SelectField value={lessonDraft.status} onChange={e=>setLessonDraft({...lessonDraft, status:e.target.value as any})}><option value="published">Published</option><option value="draft">Draft</option></SelectField></Field>
               </div>
               <button type="button" onClick={saveLesson} disabled={lessonSaving || !lessonDraft.title.trim()} className="inline-flex items-center gap-2 rounded-lg bg-[#1F3354] px-4 py-2 text-sm font-semibold text-white hover:bg-[#162640] disabled:opacity-50">
-                {lessonSaving ? "Saving…" : lessonEditingId ? "Update Lesson" : "Add Lesson"}
+                {lessonSaving ? "Savingâ€¦" : lessonEditingId ? "Update Lesson" : "Add Lesson"}
               </button>
             </div>
 
             {/* Lessons list */}
-            {lessonsLoading ? <p className="text-sm text-slate-500">Loading…</p> : lessons.length===0 ? <p className="text-sm text-slate-500 text-center py-6">No lessons yet. Add first lesson above.</p> : (
+            {lessonsLoading ? <p className="text-sm text-slate-500">Loadingâ€¦</p> : lessons.length===0 ? <p className="text-sm text-slate-500 text-center py-6">No lessons yet. Add first lesson above.</p> : (
               <div className="space-y-2">
                 {lessons.map((l:any, idx:number)=> {
                   const icons:any = {video_youtube: Play, video_drive: Play, pdf: FileText, ppt: Presentation, text: Type, image: ImageIcon};
@@ -624,7 +626,7 @@ export default function CoursesAdminPage() {
                       <span className="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center"><Icon className="h-3.5 w-3.5 text-slate-600" /></span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-slate-800 truncate">{idx+1}. {l.title}</p>
-                        <p className="text-xs text-slate-500 truncate">{l.type} {l.duration ? `• ${l.duration}` : ""} {l.status==="draft" ? "• Draft" : ""}</p>
+                        <p className="text-xs text-slate-500 truncate">{l.type} {l.duration ? `â€¢ ${l.duration}` : ""} {l.status==="draft" ? "â€¢ Draft" : ""}</p>
                       </div>
                       <button onClick={()=>{setLessonDraft({title:l.title, type:l.type, fileUrl:l.fileUrl||"", content:l.content||"", duration:l.duration||"", status:l.status}); setLessonEditingId(l.id);}} className="p-1.5 rounded border hover:bg-slate-50"><Pencil className="h-3.5 w-3.5" /></button>
                       <button onClick={()=>deleteLesson(l.id)} className="p-1.5 rounded border border-red-200 text-red-600 hover:bg-red-50"><Trash2 className="h-3.5 w-3.5" /></button>

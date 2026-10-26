@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
-import { COURSE_CATEGORIES, type CourseCategory } from "./MockTest";
+import { COURSE_CATEGORIES, type CourseCategory } from "@/lib/courseCategories";
 
 export type ENoteAccessType = "free" | "enrolled";
 

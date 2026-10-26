@@ -1,20 +1,6 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
-
-// Canonical course categories used across the app
-export const COURSE_CATEGORIES = [
-  "General",
-  "O-Level",
-  "CCC",
-  "CCC+",
-  "ADCA",
-  "DCA",
-  "Tally",
-  "Digital Marketing",
-  "RSCIT",
-  "Other",
-] as const;
-
-export type CourseCategory = (typeof COURSE_CATEGORIES)[number];
+import { COURSE_CATEGORIES, type CourseCategory } from "@/lib/courseCategories";
+export type { CourseCategory } from "@/lib/courseCategories";
 
 export interface IQuestion {
   _id?: mongoose.Types.ObjectId;
